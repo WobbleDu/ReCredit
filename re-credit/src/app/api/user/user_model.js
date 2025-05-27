@@ -41,8 +41,6 @@ const createUser = (body) => {
   })
 }
 
-
-
 //DELETE
 const deleteUser = (id) => {
   return new Promise(function(resolve, reject) {

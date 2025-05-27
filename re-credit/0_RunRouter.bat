@@ -1,1 +1,1 @@
-wget --method=PUT --body-data='{"firstname":"НовоеИмя","lastname":"НоваяФамилия"}' --header="Content-Type: application/json" -O -http://localhost:3000/users/123
+node .\index.js
