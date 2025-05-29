@@ -57,7 +57,7 @@ const deletePayments = (id) => {
 //PUT
 const editPaymentsByID = (body) => {
   return new Promise(function(resolve, reject) {
-    const {offer_id, datetime, summary, remain} = body
+    const {id_payments,offer_id, datetime, summary, remain} = body
     console.log(offer_id, datetime, summary, remain)
     pool.query('UPDATE payments SET offer_id=$2, datetime=$3, summary=$4, remain=$5 WHERE id_payments = $1', [id_payments, offer_id, datetime, summary, remain], (error, results) => {
       if (error) {

@@ -9,7 +9,7 @@ const getOffers = () => {
       }
       resolve(results.rows); 
     })
-  }) 
+  })
 }
 
 //GET
@@ -49,29 +49,29 @@ const deleteOffer = (id) => {
       if (error) {
         reject(error)
       }
-      resolve(`User deleted with ID: ${id}`)
+      resolve(`Offer deleted with ID: ${id}`)
     })
   })
 }
 
 //PUT
-const editUserByID = (body) => {
+const editOfferByID = (body) => {
   return new Promise(function(resolve, reject) {
-    const {id,login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country} = body
-    console.log(login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country)
-    pool.query('UPDATE customers SET firstname = $3, lastname = $4, birthdate=$5, phonenumber =$6, inn = $7, passportseries = $8, passportnumber = $9, income = $10, country = $11 WHERE id_user = $1', [id, login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
+    const { id_offer,owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend } = body
+    console.log(id_offer,owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend)
+    pool.query('UPDATE offers SET owner_id=$2, guest_id=$3, type=$4, creditsum=$5, interestrate=$6, state=$7, datestart=$8, dateend=$9 WHERE id_user = $1', [owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend], (error, results) => {
       if (error) {
         reject(error)
       }
-      resolve(`User edited`);
+      resolve(`Offer edited`);
     })
   })
 }
 
 module.exports = {
-  getUsers,
-  getUserByID,
-  createUser,
-  deleteUser,
-  editUserByID
+  getOffers,
+  getOfferByID,
+  createOffer,
+  deleteOffer,
+  editOfferByID
 }

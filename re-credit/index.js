@@ -241,7 +241,114 @@ app.get('/user/:id/notifications', (req, res) => {
 
 }
 {//OFFERS
+const offers_model = require('./src/app/api/user/offers_model')
+app.get('/offers', (req, res) => {
+  offers_model.getOffers()
+  .then(response => {
+    res.status(200).send(response);
+    console.log('Got all offers');
+  })
+  .catch(error => {
+    res.status(500).send(error);
+  })
+})
+app.get('/offers/:id',(req,res) =>{
+    if (isNaN(req.params.id)) {  // Проверяем, что ID - число
+    res.status(400).send('Invalid offer ID');
+    return;
+    }
+    offers_model.getOfferByID(req.params.id)
+    .then(response => {
+        if (!response) {
+        res.status(404).send('User not found');
+        console.log(`User with ID: ${req.params.id} not found`);
+         } else {
+        res.status(200).json(response);
+        console.log(`Got user with ID: ${req.params.id}.`);
+         }
+})
+    .catch(error =>{
+        res.status(500).send(error);
+    })
+})
+app.delete('/users/:id',(req,res) =>{
+    if (isNaN(req.params.id)) {  // Проверяем, что ID - число
+    res.status(400).send('Invalid user ID');
+    return;
+    }
+    offers_model.deleteUser(req.params.id)
+    .then(response => {
+        if (!response) {
+        res.status(404).send('User not found');
+        console.log(`User with ID: ${req.params.id} not found`);
+         } else {
+        res.status(200).json(response);
+        console.log(`Deleted user  with ID: ${req.params.id}.`);
+         }
+})
+    .catch(error =>{
+        res.status(500).send(error);
+    })
+})
+app.post('/users', (req, res) => {
+  offers_model.createUser(req.body)
+    .then(response => {
+      res.status(201).send(response);
+      console.log('User created successfully:', response);
+    })
+    .catch(error => {
+      console.error('Error creating user:', error);
+      
+      // Кастомные статусы для разных ошибок
+      if (error.message.includes('обязательные поля')) {
+        res.status(400).send({ error: error.message });
+      } else if (error.message.includes('email уже существует')) {
+        res.status(409).send({ error: error.message });
+      } else {
+        res.status(500).send({ error: 'Internal server error' });
+      }
+    });
+});
+app.put('/users/:id', (req, res) => {
+  const userId = req.params.id;
+  
+  // Проверка наличия ID
+  if (!userId) {
+    return res.status(400).send({ error: 'User ID is required' });
+  }
 
+  // Проверка тела запроса
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).send({ error: 'Request body is empty' });
+  }
+
+  const userData = { 
+    id: userId,
+    ...req.body 
+  };
+
+  offers_model.editUserByID(userData)
+    .then(response => {
+      res.status(200).json({
+        success: true,
+        message: `User with ID ${userId} updated successfully`,
+        data: response
+      });
+      console.log(`User ${userId} updated:`, req.body);
+    })
+    .catch(error => {
+      console.error(`Error updating user ${userId}:`, error);
+      
+      // Определяем тип ошибки
+      const statusCode = error.message.includes('not found') ? 404 : 500;
+      
+      res.status(statusCode).json({
+        success: false,
+        message: `Failed to update user ${userId}`,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    });
+});
 }
 
 app.listen(port, () => {
