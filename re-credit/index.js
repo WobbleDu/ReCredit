@@ -338,7 +338,7 @@ app.put('/payments/:id', (req, res) => {
 });
 }
 {//OFFERS
-const offers_model = require('./src/app/api/user/offers_model')
+const offers_model = require('./src/app/api/offer/offers_model')
 app.get('/offers', (req, res) => {
   offers_model.getOffers()
   .then(response => {
