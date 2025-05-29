@@ -1,534 +1,117 @@
 'use client'
- 
-import React, { useState } from 'react';
 
-interface UserData {
-  ID_User: number;
-  Login: string;
-  FirstName: string;
-  LastName: string;
-  BirthDate: string;
-  PhoneNumber: string;
-  INN: string;
-  PassportSerie: number;
-  PassportNumber: number;
-  Income: number;
-  Country: string;
+import React, { useState, useEffect } from 'react';
+
+interface LoginFormProps {
+  onRegisterClick: () => void;
+  onLoginSuccess: (user: any) => void; // Добавляем user в параметры
 }
 
-const AccountPage: React.FC = () => {
-  const [user] = useState<UserData>({
-    ID_User: 1,
-    Login: 'ivanov',
-    FirstName: 'Иван',
-    LastName: 'Иванов',
-    BirthDate: '1985-05-15',
-    PhoneNumber: '+79161234567',
-    INN: '123456789012',
-    PassportSerie: 1234,
-    PassportNumber: 567890,
-    Income: 75000.00,
-    Country: 'Россия'
-  });
+interface User {
+  id: number;
+  login: string;
+  password: string;
+  // другие поля пользователя, если есть
+}
 
-  const navigateTo = (page: string) => {
-    console.log(`Переход на страницу ${page}`);
-    // В реальном приложении: window.location.href = `/${page}`;
+const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }) => {
+  const [login, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+
+  // Загружаем пользователей при монтировании компонента
+  useEffect(() => {
+    getUsers();
+  }, []);
+
+  function getUsers() {
+    fetch('http://localhost:3001')
+      .then(response => {
+        if (!response.ok) throw new Error('Ошибка сервера');
+        return response.json();
+      })
+      .then(data => {
+        setUsers(data);
+      })
+      .catch(err => {
+        console.error('Ошибка загрузки пользователей:', err);
+        setError('Ошибка загрузки данных сервера');
+      });
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    // Валидация полей
+    if (!login || !password) {
+      setError('Пожалуйста, заполните все поля');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Ищем пользователя в загруженных данных
+      const user = users.find(u => u.login === login && u.password === password);
+      
+      if (user) {
+        // Если нужно запомнить пользователя, сохраняем в localStorage
+        if (rememberMe) {
+          localStorage.setItem('currentUser', JSON.stringify(user));
+        }
+        // Передаем данные пользователя в onLoginSuccess
+        onLoginSuccess(user);
+      } else {
+        throw new Error('Неверные учетные данные');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка авторизации');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f3f4f6',
-      padding: '1rem'
-    }}>
-      <div style={{
-        maxWidth: '64rem',
-        width: '100%',
-        margin: '0 auto',
-        backgroundColor: 'white',
-        borderRadius: '0.5rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        padding: '2rem',
-        marginTop: '2rem',
-        marginBottom: '2rem'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '2rem',
-          borderBottom: '1px solid #e5e7eb',
-          paddingBottom: '1rem'
-        }}>
-          <h2 style={{
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            color: '#111827'
-          }}>
-            Мой аккаунт
-          </h2>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => navigateTo('profile')}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#f3f4f6',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
-                color: '#374151',
-                cursor: 'pointer'
-              }}
-            >
-              Профиль
-            </button>
-            <button
-              onClick={() => navigateTo('main_offers')}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#f3f4f6',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
-                color: '#374151',
-                cursor: 'pointer'
-              }}
-            >
-              Войти
-            </button>
-            <button
-              onClick={() => navigateTo('notifications')}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#f3f4f6',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.375rem',
-                color: '#374151',
-                cursor: 'pointer'
-              }}
-            >
-              Уведомления
-            </button>
-            <button
-              onClick={() => navigateTo('create_offers')}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#3b82f6',
-                border: '1px solid #2563eb',
-                borderRadius: '0.375rem',
-                color: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              Добавить объявление
-            </button>
-          </div>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '2rem'
-        }}>
-          <div>
-            <h3 style={{
-              fontSize: '1.25rem',
-              fontWeight: '600',
-              color: '#111827',
-              marginBottom: '1rem'
-            }}>
-              Личная информация
-            </h3>
-            <div style={{
-              backgroundColor: '#f9fafb',
-              borderRadius: '0.5rem',
-              padding: '1.5rem'
-            }}>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  Имя
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.FirstName}
-                </p>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  Фамилия
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.LastName}
-                </p>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  Дата рождения
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.BirthDate}
-                </p>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  Телефон
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.PhoneNumber}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 style={{
-              fontSize: '1.25rem',
-              fontWeight: '600',
-              color: '#111827',
-              marginBottom: '1rem'
-            }}>
-              Документы и финансы
-            </h3>
-            <div style={{
-              backgroundColor: '#f9fafb',
-              borderRadius: '0.5rem',
-              padding: '1.5rem'
-            }}>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  ИНН
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.INN}
-                </p>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  Паспорт
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.PassportSerie} {user.PassportNumber}
-                </p>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  Доход
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.Income.toLocaleString('ru-RU')} ₽
-                </p>
-              </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  marginBottom: '0.25rem'
-                }}>
-                  Страна
-                </p>
-                <p style={{
-                  fontSize: '1rem',
-                  color: '#111827',
-                  fontWeight: '500'
-                }}>
-                  {user.Country}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label>Логин:</label>
+        <input 
+          type="text" 
+          value={login} 
+          onChange={(e) => setEmail(e.target.value)} 
+        />
       </div>
-    </div>
+      <div>
+        <label>Пароль:</label>
+        <input 
+          type="password" 
+          value={password} 
+          onChange={(e) => setPassword(e.target.value)} 
+        />
+      </div>
+      <div>
+        <label>
+          <input 
+            type="checkbox" 
+            checked={rememberMe} 
+            onChange={(e) => setRememberMe(e.target.checked)} 
+          />
+          Запомнить меня
+        </label>
+      </div>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      <button type="submit" disabled={loading}>
+        {loading ? 'Вход...' : 'Войти'}
+      </button>
+      <button type="button" onClick={onRegisterClick}>
+        Регистрация
+      </button>
+    </form>
   );
 };
 
-export default AccountPage;
-
-/*
-'use client'
- 
- import React, { useState } from 'react';
- 
- interface LoginFormProps {
-   onRegisterClick: () => void;
-   onLoginSuccess: () => void;
- }
- 
- const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }) => {
-   const [login, setEmail] = useState('');
-   const [password, setPassword] = useState('');
-   const [error, setError] = useState('');
-   const [loading, setLoading] = useState(false);
-   const [rememberMe, setRememberMe] = useState(false);
- 
-   const handleSubmit = async (e: React.FormEvent) => {
-     e.preventDefault();
-     setLoading(true);
-     setError('');
- 
-     // Валидация полей
-     if (!login || !password) {
-       setError('Пожалуйста, заполните все поля');
-       setLoading(false);
-       return;
-     }
- 
-     try {
-       // Имитация API запроса
-       await new Promise(resolve => setTimeout(resolve, 1000));
-       
-       // Проверка демо-учетных данных (для примера)
-       if (login === 'demo@example.com' && password === 'password123') {
-         if (rememberMe) {
-           localStorage.setItem('authToken', 'demo-token');
-         } else {
-           sessionStorage.setItem('authToken', 'demo-token');
-         }
-         onLoginSuccess();
-       } else {
-         throw new Error('Неверные учетные данные');
-       }
-     } catch (err) {
-       setError(err instanceof Error ? err.message : 'Ошибка авторизации');
-     } finally {
-       setLoading(false);
-     }
-   };
- 
-   return (
-     <div style={{
-       minHeight: '100vh',
-       display: 'flex',
-       alignItems: 'center',
-       justifyContent: 'center',
-       backgroundColor: '#f3f4f6',
-       padding: '1rem'
-     }}>
-       <div style={{
-         maxWidth: '28rem',
-         width: '100%',
-         backgroundColor: 'white',
-         borderRadius: '0.5rem',
-         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-         padding: '2rem'
-       }}>
-         <h2 style={{
-           marginBottom: '1.5rem',
-           textAlign: 'center',
-           fontSize: '1.5rem',
-           fontWeight: 'bold',
-           color: '#111827'
-         }}>
-           Вход в систему
-         </h2>
-         
-         {error && (
-           <div style={{
-             backgroundColor: '#fef2f2',
-             color: '#b91c1c',
-             padding: '0.75rem',
-             borderRadius: '0.375rem',
-             marginBottom: '1rem'
-           }}>
-             {error}
-           </div>
-         )}
-         
-         <form onSubmit={handleSubmit}>
-           <div style={{ marginBottom: '1rem' }}>
-             <label htmlFor="email" style={{
-               display: 'block',
-               marginBottom: '0.5rem',
-               fontSize: '0.875rem',
-               fontWeight: '500',
-               color: '#374151'
-             }}>
-               Email
-             </label>
-             <input
-               id="email"
-               type="email"
-               value={login}
-               onChange={(e) => setEmail(e.target.value)}
-               style={{
-                 width: '100%',
-                 padding: '0.5rem 0.75rem',
-                 border: '1px solid #d1d5db',
-                 borderRadius: '0.375rem',
-                 outline: 'none',
-                 boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'
-               }}
-               placeholder="your@email.com"
-             />
-           </div>
-           
-           <div style={{ marginBottom: '1rem' }}>
-             <label htmlFor="password" style={{
-               display: 'block',
-               marginBottom: '0.5rem',
-               fontSize: '0.875rem',
-               fontWeight: '500',
-               color: '#374151'
-             }}>
-               Пароль
-             </label>
-             <input
-               id="password"
-               type="password"
-               value={password}
-               onChange={(e) => setPassword(e.target.value)}
-               style={{
-                 width: '100%',
-                 padding: '0.5rem 0.75rem',
-                 border: '1px solid #d1d5db',
-                 borderRadius: '0.375rem',
-                 outline: 'none',
-                 boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'
-               }}
-               placeholder="••••••••"
-             />
-           </div>
-           
-           <div style={{
-             display: 'flex',
-             alignItems: 'center',
-             justifyContent: 'space-between',
-             marginBottom: '1.5rem'
-           }}>
-             <div style={{ display: 'flex', alignItems: 'center' }}>
-               <input
-                 id="remember-me"
-                 type="checkbox"
-                 checked={rememberMe}
-                 onChange={(e) => setRememberMe(e.target.checked)}
-                 style={{
-                   marginRight: '0.5rem',
-                   width: '1rem',
-                   height: '1rem',
-                   borderColor: '#d1d5db'
-                 }}
-               />
-               <label htmlFor="remember-me" style={{
-                 fontSize: '0.875rem',
-                 color: '#374151'
-               }}>
-                 Запомнить меня
-               </label>
-             </div>
-             
-             <button
-               type="button"
-               onClick={() => alert('Функция восстановления пароля')}
-               style={{
-                 fontSize: '0.875rem',
-                 color: '#4f46e5',
-                 fontWeight: '500',
-                 background: 'none',
-                 border: 'none',
-                 cursor: 'pointer'
-               }}
-             >
-               Забыли пароль?
-             </button>
-           </div>
-           
-           <button
-             type="submit"
-             disabled={loading}
-             style={{
-               width: '100%',
-               padding: '0.5rem',
-               backgroundColor: '#4f46e5',
-               color: 'white',
-               fontWeight: '500',
-               borderRadius: '0.375rem',
-               border: 'none',
-               cursor: 'pointer',
-               opacity: loading ? 0.5 : 1,
-               pointerEvents: loading ? 'none' : 'auto'
-             }}
-           >
-             {loading ? 'Вход...' : 'Войти'}
-           </button>
-         </form>
-         
-         <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-           <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-             Ещё нет аккаунта?{' '}
-           </span>
-           <button
-             onClick={onRegisterClick}
-             style={{
-               fontSize: '0.875rem',
-               color: '#4f46e5',
-               fontWeight: '500',
-               background: 'none',
-               border: 'none',
-               cursor: 'pointer'
-             }}
-           >
-             Зарегистрироваться
-           </button>
-         </div>
-       </div>
-     </div>
-   );
- };
- 
- export default LoginForm;
-
-*/
+export default LoginForm;
