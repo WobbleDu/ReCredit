@@ -24,7 +24,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }
 
   // Загружаем пользователей при монтировании компонента
   useEffect(() => {
-    fetch('http://localhost:3001')
+    fetch('http://localhost:3001/users')
       .then(response => {
         if (!response.ok) throw new Error('Ошибка сервера');
         return response.json();
