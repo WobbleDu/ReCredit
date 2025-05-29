@@ -238,7 +238,105 @@ app.get('/user/:id/notifications', (req, res) => {
 })
 }
 {//PAYMENTS
+const payment_model = require('./src/app/api/payment/payments_model')
+app.get('/payments', (req, res) => {
+  payment_model.getPayments()
+  .then(response => {
+    res.status(200).send(response);
+    console.log('Got all payments');
+  })
+  .catch(error => {
+    res.status(500).send(error);
+  })
+})
+app.get('/payments/:id',(req,res) =>{
+    if (isNaN(req.params.id)) {  // Проверяем, что ID - число
+    res.status(400).send('Invalid payment ID');
+    return;
+    }
+    payment_model.getPaymentsByID(req.params.id)
+    .then(response => {
+        if (!response) {
+        res.status(404).send('Payment not found');
+        console.log(`Payment with ID: ${req.params.id} not found`);
+         } else {
+        res.status(200).json(response);
+        console.log(`Got payment with ID: ${req.params.id}.`);
+         }
+})
+    .catch(error =>{
+        res.status(500).send(error);
+    })
+})
+app.delete('/payments/:id',(req,res) =>{
+    if (isNaN(req.params.id)) {  // Проверяем, что ID - число
+    res.status(400).send('Invalid payment ID');
+    return;
+    }
+    payment_model.deletePayments(req.params.id)
+    .then(response => {
+        if (!response) {
+        res.status(404).send('Payment not found');
+        console.log(`Payment with ID: ${req.params.id} not found`);
+         } else {
+        res.status(200).json(response);
+        console.log(`Deleted payment with ID: ${req.params.id}.`);
+         }
+})
+    .catch(error =>{
+        res.status(500).send(error);
+    })
+})
+app.post('/payments', (req, res) => {
+  payment_model.createPayments(req.body)
+    .then(response => {
+      res.status(201).send(response);
+      console.log('Payment created successfully:', response);
+    })
+    .catch(error => {
+      console.error('Error creating payment:', error);
+    });
+});
+app.put('/payments/:id', (req, res) => {
+  const paymentId = req.params.id;
+  
+  // Проверка наличия ID
+  if (!paymentId) {
+    return res.status(400).send({ error: 'Payment ID is required' });
+  }
 
+  // Проверка тела запроса
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).send({ error: 'Request body is empty' });
+  }
+
+  const paymentData = { 
+    id: paymentId,
+    ...req.body 
+  };
+
+  payment_model.editPaymentsByID(paymentData)
+    .then(response => {
+      res.status(200).json({
+        success: true,
+        message: `Payment with ID ${paymentId} updated successfully`,
+        data: response
+      });
+      console.log(`Payment ${paymentId} updated:`, req.body);
+    })
+    .catch(error => {
+      console.error(`Error updating payment ${paymentId}:`, error);
+      
+      // Определяем тип ошибки
+      const statusCode = error.message.includes('not found') ? 404 : 500;
+      
+      res.status(statusCode).json({
+        success: false,
+        message: `Failed to update payment ${paymentId}`,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    });
+});
 }
 {//OFFERS
 const offers_model = require('./src/app/api/user/offers_model')
