@@ -237,10 +237,10 @@ app.get('/user/:id/notifications', (req, res) => {
   })
 })
 }
-{//
+{//PAYMENTS
 
 }
-{//
+{//OFFERS
 
 }
 
