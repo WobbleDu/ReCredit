@@ -1,52 +1,68 @@
 'use client'
- 
- import React, { useState } from 'react';
- 
- interface LoginFormProps {
-   onRegisterClick: () => void;
-   onLoginSuccess: () => void;
- }
- 
- const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }) => {
-   const [login, setEmail] = useState('');
-   const [password, setPassword] = useState('');
-   const [error, setError] = useState('');
-   const [loading, setLoading] = useState(false);
-   const [rememberMe, setRememberMe] = useState(false);
- 
-   const handleSubmit = async (e: React.FormEvent) => {
-     e.preventDefault();
-     setLoading(true);
-     setError('');
 
-     // Валидация полей
-     if (!login || !password) {
-       setError('Пожалуйста, заполните все поля');
-       setLoading(false);
-       return;
-     }
- 
-     try {
-       // Имитация API запроса
-       await new Promise(resolve => setTimeout(resolve, 1000));
-       
-       // Проверка демо-учетных данных (для примера)
-       if (login === 'demo@example.com' && password === 'password123') {
-         if (rememberMe) {
-           localStorage.setItem('authToken', 'demo-token');
-         } else {
-           sessionStorage.setItem('authToken', 'demo-token');
-         }
-         onLoginSuccess();
-       } else {
-         throw new Error('Неверные учетные данные');
-       }
-     } catch (err) {
-       setError(err instanceof Error ? err.message : 'Ошибка авторизации');
-     } finally {
-       setLoading(false);
-     }
-   };
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+interface LoginFormProps {
+  onLoginSuccess: (user: any) => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+  const router = useRouter();
+  const [login, setLogin] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (!login || !password) {
+      setError('Пожалуйста, заполните все поля');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Вызываем функцию проверки логина через API
+      const response = await fetch('http://localhost:3001/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ login, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Ошибка авторизации');
+      }
+
+      if (data) {
+        // Если аутентификация успешна
+        if (rememberMe) {
+          localStorage.setItem('authData', JSON.stringify({ login }));
+          router.push('/account');
+        }
+        sessionStorage.setItem('authData', JSON.stringify({ login }));
+        onLoginSuccess({ login });
+      } else {
+        throw new Error('Неверные учетные данные');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка авторизации');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegisterClick = () => {
+    router.push('/pages/registration');
+  };
  
    return (
      <div style={{
@@ -96,24 +112,24 @@
                fontWeight: '500',
                color: '#374151'
              }}>
-               Email
-             </label>
-             <input
-               id="email"
-               type="email"
-               value={login}
-               onChange={(e) => setEmail(e.target.value)}
-               style={{
-                 width: '100%',
-                 padding: '0.5rem 0.75rem',
-                 border: '1px solid #d1d5db',
-                 borderRadius: '0.375rem',
-                 outline: 'none',
-                 boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'
-               }}
-               placeholder="your@email.com"
-             />
-           </div>
+               Логин
+            </label>
+            <input
+              id="login"
+              type="text"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                outline: 'none',
+                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'
+              }}
+              placeholder="Ваш логин"
+            />
+          </div>
            
            <div style={{ marginBottom: '1rem' }}>
              <label htmlFor="password" style={{
@@ -210,7 +226,7 @@
              Ещё нет аккаунта?{' '}
            </span>
            <button
-             onClick={onRegisterClick}
+             onClick={handleRegisterClick}
              style={{
                fontSize: '0.875rem',
                color: '#4f46e5',

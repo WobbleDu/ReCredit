@@ -1,20 +1,37 @@
 'use client'
 
+import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
+interface UserData {
+  ID_User: number;
+  Login: string;
+  FirstName: string;
+  LastName: string;
+  BirthDate: string;
+  PhoneNumber: string;
+  INN: string;
+  PassportSerie: number;
+  PassportNumber: number;
+  Income: number;
+  Country: string;
+}
 
 interface Offer {
   id: number;
-  title: string;
-  amount: number;
-  interestRate: number;
-  term: number;
+  type: string;
+  creditsum: number;
+  interestrate: number;
+  term?: number;
+  ownerfirst_name?: string;
+  ownerlast_name?: string;
 }
 
 interface Notification {
-  id: number;
-  message: string;
-  read: boolean;
-  timestamp: Date;
+  id_notification: number;
+  user_id: number;
+  text: string;
+  flag: boolean;
+  datetime: string;
 }
 
 const IndexPage: React.FC = () => {
@@ -23,32 +40,46 @@ const IndexPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'interestRate' | 'term' | 'amount'>('interestRate');
+  const [sortBy, setSortBy] = useState<'interestrate' | 'term' | 'amount'>('interestrate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showNotifications, setShowNotifications] = useState(false);
-
+  const [showAllOffers, setShowAllOffers] = useState(false); // Новое состояние для отображения всех предложений
+const getUserIdFromUrl = () => {
+  const match = window.location.pathname.match(/\/user\/(\d+)\/notifications/);
+  return match ? match[1] : null;
+};
+const userId = getUserIdFromUrl();
   // Загрузка данных
   useEffect(() => {
-    // Моковые данные предложений
-    const mockOffers: Offer[] = [
-      { id: 1, title: 'Заём на развитие бизнеса', amount: 500000, interestRate: 8.5, term: 24 },
-      { id: 2, title: 'Кредит на недвижимость', amount: 2000000, interestRate: 6.2, term: 60 },
-      { id: 3, title: 'Экспресс-заём', amount: 100000, interestRate: 12.0, term: 6 },
-      { id: 4, title: 'Стартап инвестиции', amount: 750000, interestRate: 9.5, term: 36 },
-      { id: 5, title: 'Образовательный кредит', amount: 300000, interestRate: 7.0, term: 12 },
-    ];
+    const fetchData = async () => {
+      try {
+        
+        // Загрузка предложений с сервера
+        const response = await fetch('http://localhost:3001/offers');
+        if (!response.ok) {
+          throw new Error('Не удалось загрузить предложения');
+        }
+        const offerdata = await response.json();
+        setOffers(offerdata);
+        setFilteredOffers(offerdata);
 
-    // Моковые уведомления
-    const mockNotifications: Notification[] = [
-      { id: 1, message: 'Ваша заявка на кредит одобрена', read: false, timestamp: new Date(Date.now() - 3600000) },
-      { id: 2, message: 'Новое предложение соответствует вашим критериям', read: false, timestamp: new Date(Date.now() - 86400000) },
-      { id: 3, message: 'Ваш депозит был успешно зачислен', read: true, timestamp: new Date(Date.now() - 172800000) },
-    ];
-
-    setOffers(mockOffers);
-    setFilteredOffers(mockOffers);
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.read).length);
+           // Загрузка уведомлений
+    const responseNotifications = await fetch('http://localhost:3001/user/2/notifications');
+    if (!responseNotifications.ok) {
+      throw new Error('Не удалось загрузить уведомления');
+    }
+    const notificationsData = await responseNotifications.json();
+    setNotifications(notificationsData);
+    //setUnreadCount(notificationsData.filter(n => !n.read).length);
+        
+    
+      } catch (err) {
+        console.error('Ошибка загрузки данных:', err);
+      } finally {
+      }
+    };
+    
+    fetchData();
   }, []);
 
   // Фильтрация и сортировка предложений
@@ -58,7 +89,7 @@ const IndexPage: React.FC = () => {
     // Фильтрация по поисковому запросу
     if (searchTerm) {
       result = result.filter(offer => 
-        offer.title.toLowerCase().includes(searchTerm.toLowerCase())
+        offer.type.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
@@ -76,7 +107,7 @@ const IndexPage: React.FC = () => {
 
   const markAsRead = (id: number) => {
     setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
+      n.user_id === id ? { ...n, read: true } : n
     ));
     setUnreadCount(unreadCount - 1);
   };
@@ -86,14 +117,16 @@ const IndexPage: React.FC = () => {
     setUnreadCount(0);
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('ru-RU', { 
-      day: 'numeric', 
-      month: 'short', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const formatDate = (dateInput: string | Date) => {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  
+  return date.toLocaleDateString('ru-RU', { 
+    day: 'numeric', 
+    month: 'short', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+};
 
   const openProfile = () => {
     alert('Переход в профиль пользователя');
@@ -105,6 +138,10 @@ const IndexPage: React.FC = () => {
 
   const openAllNotifications = () => {
     alert('Переход к списку всех уведомлений');
+  };
+
+  const toggleAllOffers = () => {
+    setShowAllOffers(!showAllOffers);
   };
 
   return (
@@ -132,7 +169,7 @@ const IndexPage: React.FC = () => {
           fontSize: 28,
           fontWeight: 600
         }}>
-          Брокерская платформа
+          ИМЯ, ФАМИЛИЯ ПОЛЬЗОВАТЕЛЯ
         </h1>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
@@ -213,28 +250,28 @@ const IndexPage: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    {notifications.map(notification => (
+                    {notifications.map((notification,index) => (
                       <div 
-                        key={notification.id}
-                        onClick={() => markAsRead(notification.id)}
+                        key={index}
+                        onClick={() => markAsRead(notification.user_id)}
                         style={{
                           padding: 15,
                           borderBottom: '1px solid #e1e1e1',
                           cursor: 'pointer',
-                          backgroundColor: notification.read ? 'white' : '#f8f9fa'
+                          backgroundColor: notification.flag ? 'white' : '#f8f9fa'
                         }}
                       >
                         <div style={{ 
-                          fontWeight: notification.read ? 'normal' : 'bold',
+                          fontWeight: notification.flag ? 'normal' : 'bold',
                           marginBottom: 5
                         }}>
-                          {notification.message}
+                          {notification.text}
                         </div>
                         <div style={{ 
                           fontSize: 12,
                           color: '#7f8c8d'
                         }}>
-                          {formatDate(notification.timestamp)}
+                          {formatDate(notification.datetime)}
                         </div>
                       </div>
                     ))}
@@ -403,8 +440,31 @@ const IndexPage: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* Кнопка переключения между разделами */}
+        <div style={{ marginBottom: 20 }}>
+          <button 
+            onClick={toggleAllOffers}
+            style={{
+              backgroundColor: showAllOffers ? '#2c3e50' : '#3498db',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 16,
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s',
+              ':hover': {
+                backgroundColor: showAllOffers ? '#1a252f' : '#2980b9'
+              }
+            } as React.CSSProperties}
+          >
+            {showAllOffers ? 'Показать рекомендуемые' : 'Показать все предложения'}
+          </button>
+        </div>
         
-        {/* Рекомендуемые предложения */}
+        {/* Рекомендуемые предложения или Все предложения */}
         <section>
           <h2 style={{ 
             marginTop: 0,
@@ -412,7 +472,7 @@ const IndexPage: React.FC = () => {
             color: '#2c3e50',
             fontSize: 20
           }}>
-            Рекомендуемые предложения
+            {showAllOffers ? 'Все предложения' : 'Рекомендуемые предложения'}
           </h2>
           
           <div style={{
@@ -420,8 +480,8 @@ const IndexPage: React.FC = () => {
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
             gap: 20
           }}>
-            {filteredOffers.map(offer => (
-              <div key={offer.id} style={{
+            {(showAllOffers ? offers : filteredOffers).map((offer,index) => (
+              <div key={index} style={{
                 backgroundColor: 'white',
                 borderRadius: 10,
                 padding: 20,
@@ -438,7 +498,7 @@ const IndexPage: React.FC = () => {
                   marginBottom: 10,
                   color: '#2c3e50'
                 }}>
-                  {offer.title}
+                  {offer.type}
                 </h3>
                 
                 <div style={{ 
@@ -458,7 +518,7 @@ const IndexPage: React.FC = () => {
                       fontWeight: 'bold',
                       fontSize: 18
                     }}>
-                      {offer.amount.toLocaleString('ru-RU')} ₽
+                      {offer.creditsum} ₽
                     </div>
                   </div>
                   
@@ -475,7 +535,7 @@ const IndexPage: React.FC = () => {
                       fontSize: 18,
                       color: '#27ae60'
                     }}>
-                      {offer.interestRate}%
+                      {offer.interestrate}%
                     </div>
                   </div>
                   
@@ -485,13 +545,13 @@ const IndexPage: React.FC = () => {
                       fontSize: 14,
                       marginBottom: 3
                     }}>
-                      Срок
+                      Владелец
                     </div>
                     <div style={{ 
                       fontWeight: 'bold',
                       fontSize: 18
                     }}>
-                      {offer.term} мес.
+                      {offer.owner_name || 'Неизвестный владелец'}
                     </div>
                   </div>
                 </div>

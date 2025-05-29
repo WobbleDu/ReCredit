@@ -44,12 +44,9 @@
       try {
         // Имитация API запроса
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Сохраняем данные в localStorage (для демо)
-        localStorage.setItem('userData', JSON.stringify(formData));
   
         // Перенаправляем на страницу предложений
-        window.location.href = '/main_offers.tsx';
+        window.location.href = '/pages/';
       } catch (err) {
         setError('Ошибка при регистрации');
       } finally {

@@ -30,14 +30,14 @@ const getNotificationByID = (id) => {
 //GET
 const getNotificationByOwnerID = (id) => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT * FROM notifications WHERE id_user = $1', [id], (error, results) => {
+    pool.query('SELECT * FROM notifications WHERE user_id = $1', [id], (error, results) => {
       if (error) {
         reject(error);
       }
       if (results.rows.length === 0) {
           resolve(null);
         } else {
-          resolve(results.rows[0]);
+          resolve(results.rows);
         }
     })
   })

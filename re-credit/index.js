@@ -10,21 +10,12 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
   next();
 });
-{//LOGIN
-//POST
-const checkLogin = (body) => {
-  return new Promise(function(resolve, reject) {
-    const { login, password } = body
-    pool.query('SELECT EXISTS(SELECT 1 FROM users WHERE login = $1 AND password = crypt($2, password)) AS auth_result;', [login, password], (error, results) => {
-      if (error) {
-        reject(error)
-      }
-      resolve(results);
-    })
-  })
-}
+
+{//USERS
+const user_model = require('./src/app/api/user/user_model')
+//LOGIN
 app.post('/', (req, res) => {
-  checkLogin(req.body)
+  user_model.checkLogin(req.body)
     .then(response => {
       res.status(201).send(response);
       console.log('User login successfully:', response);
@@ -33,9 +24,6 @@ app.post('/', (req, res) => {
       console.error('Error login user:', error);
     });
 });
-}
-{//USERS
-const user_model = require('./src/app/api/user/user_model')
 app.get('/users', (req, res) => {
   user_model.getUsers()
   .then(response => {
@@ -249,7 +237,7 @@ app.put('/notifications/:id', (req, res) => {
 });
 //GET NOTIFICATION FOR ID OWNER
 app.get('/user/:id/notifications', (req, res) => {
-  notification_model.getUserNotifications(req.params.id)
+  notification_model.getNotificationByOwnerID(req.params.id)
   .then(response => {
     res.status(200).send(response);
     console.log('Got all user notifications');
