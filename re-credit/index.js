@@ -11,7 +11,6 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
   next();
 });
-
 {//USERS
 const user_model = require('./src/app/api/user/user_model')
 app.get('/users', (req, res) => {
