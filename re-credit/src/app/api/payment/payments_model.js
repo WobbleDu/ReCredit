@@ -1,9 +1,9 @@
 const pool = require('pg/lib/db.js'); // Импортируем pool
 
 //GET
-const getUsers = () => {
+const getPayments = () => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT * FROM _users ORDER BY id_user ASC', (error, results) => {
+    pool.query('SELECT * FROM payments ORDER BY id_payment ASC', (error, results) => {
       if (error) {
         reject(error)
       }
@@ -13,9 +13,9 @@ const getUsers = () => {
 }
 
 //GET
-const getUserByID = (id) => {
+const getPaymentsByID = (id) => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT * FROM _users WHERE id_user = $1', [id], (error, results) => {
+    pool.query('SELECT * FROM payments WHERE id_payment = $1', [id], (error, results) => {
       if (error) {
         reject(error);
       }
@@ -29,10 +29,10 @@ const getUserByID = (id) => {
 }
 
 //POST
-const createUser = (body) => {
+const createPayments = (body) => {
   return new Promise(function(resolve, reject) {
-    const { login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country } = body
-    pool.query('INSERT INTO _users (login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', [login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
+    const { offer_id, datetime, summary, remain} = body
+    pool.query('INSERT INTO payments (offer_id, datetime, summary, remain) VALUES ($1, $2, $3, $4) RETURNING *', [offer_id, datetime, summary, remain], (error, results) => {
       if (error) {
         reject(error)
       }
@@ -42,36 +42,36 @@ const createUser = (body) => {
 }
 
 //DELETE
-const deleteUser = (id) => {
+const deletePayments = (id) => {
   return new Promise(function(resolve, reject) {
 
-    pool.query('DELETE FROM _users WHERE id_user = $1', [id], (error, results) => {
+    pool.query('DELETE FROM payments WHERE id_payment = $1', [id], (error, results) => {
       if (error) {
         reject(error)
       }
-      resolve(`User deleted with ID: ${id}`)
+      resolve(`Payments deleted with ID: ${id}`)
     })
   })
 }
 
 //PUT
-const editUserByID = (body) => {
+const editPaymentsByID = (body) => {
   return new Promise(function(resolve, reject) {
-    const {id,login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country} = body
-    console.log(login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country)
-    pool.query('UPDATE customers SET firstname = $3, lastname = $4, birthdate=$5, phonenumber =$6, inn = $7, passportseries = $8, passportnumber = $9, income = $10, country = $11 WHERE id_user = $1', [id, login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
+    const {offer_id, datetime, summary, remain} = body
+    console.log(offer_id, datetime, summary, remain)
+    pool.query('UPDATE payments SET offer_id=$2, datetime=$3, summary=$4, remain=$5 WHERE id_payments = $1', [id_payments, offer_id, datetime, summary, remain], (error, results) => {
       if (error) {
         reject(error)
       }
-      resolve(`User edited`);
+      resolve(`Payments edited`);
     })
   })
 }
 
 module.exports = {
-  getUsers,
-  getUserByID,
-  createUser,
-  deleteUser,
-  editUserByID
+  getPayments,
+  getPaymentsByID,
+  createPayments,
+  deletePayments,
+  editPaymentsByID
 }
