@@ -1,16 +1,26 @@
 const pool = require('pg/lib/db.js'); // Импортируем pool
 
-//GET
+// GET все предложения с информацией о владельцах
 const getOffers = () => {
   return new Promise(function(resolve, reject) {
-    pool.query('SELECT * FROM offers ORDER BY id_offer ASC', (error, results) => {
+    pool.query(`
+      SELECT 
+        o.*, 
+        u.id_user as owner_id,
+        u.firstname as owner_firstname
+        u.lastname as owner_lastname
+        -- другие поля пользователя при необходимости
+      FROM offers o
+      LEFT JOIN _users u ON o.owner_id = u.id_user
+      ORDER BY o.id_offer ASC
+    `, (error, results) => {
       if (error) {
-        reject(error)
+        reject(error);
       }
-      resolve(results.rows); 
-    })
-  })
-}
+      resolve(results.rows);
+    });
+  });
+};
 
 //GET
 const getOfferByID = (id) => {

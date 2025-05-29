@@ -27,7 +27,30 @@ const getUserByID = (id) => {
     })
   })
 }
+//POST
+const checkLogin = (body) => {
+  return new Promise((resolve, reject) => {
+    const { login, password } = body;
+    
+    if (!login || !password) {
+      return resolve(false); // Возвращаем false вместо reject
+    }
 
+    pool.query(
+      'SELECT id_user FROM _users WHERE login = $1 AND password = $2',
+      [login, password],
+      (error, results) => {
+        if (error) {
+          console.error('Ошибка при проверке логина:', error);
+          return resolve(false); // При ошибке тоже возвращаем false
+        }
+        
+        // Возвращаем true если пользователь найден, false если нет
+        resolve(results.rows.length > 0);
+      }
+    );
+  });
+};
 //POST
 const createUser = (body) => {
   return new Promise(function(resolve, reject) {
@@ -73,5 +96,6 @@ module.exports = {
   getUserByID,
   createUser,
   deleteUser,
-  editUserByID
+  editUserByID,
+  checkLogin
 }

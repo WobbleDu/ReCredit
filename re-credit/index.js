@@ -2,7 +2,6 @@ const express = require('express')
 const cors = require("cors");
 const app = express()
 const port = 3001
-
 app.use(cors());
 app.use(express.json())
 app.use(function (req, res, next) {
@@ -14,6 +13,17 @@ app.use(function (req, res, next) {
 
 {//USERS
 const user_model = require('./src/app/api/user/user_model')
+//LOGIN
+app.post('/', (req, res) => {
+  user_model.checkLogin(req.body)
+    .then(response => {
+      res.status(201).send(response);
+      console.log('User login successfully:', response);
+    })
+    .catch(error => {
+      console.error('Error login user:', error);
+    });
+});
 app.get('/users', (req, res) => {
   user_model.getUsers()
   .then(response => {
@@ -227,7 +237,7 @@ app.put('/notifications/:id', (req, res) => {
 });
 //GET NOTIFICATION FOR ID OWNER
 app.get('/user/:id/notifications', (req, res) => {
-  notification_model.getUserNotifications(req.params.id)
+  notification_model.getNotificationByOwnerID(req.params.id)
   .then(response => {
     res.status(200).send(response);
     console.log('Got all user notifications');
@@ -339,7 +349,7 @@ app.put('/payments/:id', (req, res) => {
 });
 }
 {//OFFERS
-const offers_model = require('./src/app/api/user/offers_model')
+const offers_model = require('./src/app/api/offer/offers_model')
 app.get('/offers', (req, res) => {
   offers_model.getOffers()
   .then(response => {
