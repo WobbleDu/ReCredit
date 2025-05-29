@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface LoginFormProps {
-  onRegisterClick: () => void;
   onLoginSuccess: (user: any) => void;
 }
 
@@ -11,10 +11,8 @@ interface User {
   id: number;
   login: string;
   password: string;
-  // другие поля пользователя
 }
-
-const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }) => {
+const router = useRouter();
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,9 +20,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }
   const [rememberMe, setRememberMe] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
 
-  // Загружаем пользователей при монтировании компонента
+  
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    // Загружаем пользователей при монтировании компонента
   useEffect(() => {
-    fetch('http://localhost:3001/users')
+    fetch('http://localhost:3001/')
       .then(response => {
         if (!response.ok) throw new Error('Ошибка сервера');
         return response.json();
@@ -35,13 +36,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }
         setError('Ошибка соединения с сервером');
       });
   }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // Валидация полей
     if (!login || !password) {
       setError('Пожалуйста, заполните все поля');
       setLoading(false);
@@ -49,25 +47,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }
     }
 
     try {
-      // Ищем пользователя в загруженных данных
-      const user = users.find(u => u.login === login && u.password === password);
-      
-      if (user) {
-        // Если нужно запомнить пользователя
-        if (rememberMe) {
-          localStorage.setItem('currentUser', JSON.stringify(user));
-        }
-        onLoginSuccess(user);
-      } else {
-        throw new Error('Неверные учетные данные');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка авторизации');
-    } finally {
-      setLoading(false);
-    }
+      // Вызываем функцию проверки логина через API
+      const response = await fetch('http://localhost:3001/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ login, password }),
+      });
+const data = await response.json();
+  const handleRegisterClick = () => {
+    router.push('/registration');
   };
 
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
+  
   return (
     <div style={{
       minHeight: '100vh',
@@ -230,7 +224,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }
             Ещё нет аккаунта?{' '}
           </span>
           <button
-            onClick={onRegisterClick}
+            onClick={handleRegisterClick}
             style={{
               fontSize: '0.875rem',
               color: '#4f46e5',
@@ -247,4 +241,5 @@ const LoginForm: React.FC<LoginFormProps> = ({ onRegisterClick, onLoginSuccess }
     </div>
   );
 };
- export default LoginForm;
+
+export default LoginForm;

@@ -10,7 +10,30 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers');
   next();
 });
-
+{//LOGIN
+//POST
+const checkLogin = (body) => {
+  return new Promise(function(resolve, reject) {
+    const { login, password } = body
+    pool.query('SELECT EXISTS(SELECT 1 FROM users WHERE login = $1 AND password = crypt($2, password)) AS auth_result;', [login, password], (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(results);
+    })
+  })
+}
+app.post('/', (req, res) => {
+  checkLogin(req.body)
+    .then(response => {
+      res.status(201).send(response);
+      console.log('User login successfully:', response);
+    })
+    .catch(error => {
+      console.error('Error login user:', error);
+    });
+});
+}
 {//USERS
 const user_model = require('./src/app/api/user/user_model')
 app.get('/users', (req, res) => {
