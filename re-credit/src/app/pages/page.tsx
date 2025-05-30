@@ -44,11 +44,13 @@ const IndexPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAllOffers, setShowAllOffers] = useState(false); // Новое состояние для отображения всех предложений
-const getUserIdFromUrl = () => {
-  const match = window.location.pathname.match(/\/user\/(\d+)\/notifications/);
-  return match ? match[1] : null;
-};
-const userId = getUserIdFromUrl();
+
+
+
+  const userId = 3; // ID USER
+
+
+
   // Загрузка данных
   useEffect(() => {
     const fetchData = async () => {
@@ -64,7 +66,7 @@ const userId = getUserIdFromUrl();
         setFilteredOffers(offerdata);
 
            // Загрузка уведомлений
-    const responseNotifications = await fetch('http://localhost:3001/user/2/notifications');
+    const responseNotifications = await fetch(`http://localhost:3001/user/${userId}/notifications`);
     if (!responseNotifications.ok) {
       throw new Error('Не удалось загрузить уведомления');
     }
