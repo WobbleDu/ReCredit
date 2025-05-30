@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface LoginFormProps {
-  onLoginSuccess: (user: any) => void;
+ onLoginSuccess?: (user: any) => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
@@ -46,10 +46,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         // Если аутентификация успешна
         if (rememberMe) {
           localStorage.setItem('authData', JSON.stringify({ login }));
-          router.push('/account');
+          
         }
         sessionStorage.setItem('authData', JSON.stringify({ login }));
-        onLoginSuccess({ login });
+        router.push('/pages');
       } else {
         throw new Error('Неверные учетные данные');
       }

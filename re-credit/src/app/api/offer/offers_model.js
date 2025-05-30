@@ -7,7 +7,7 @@ const getOffers = () => {
       SELECT 
         o.*, 
         u.id_user as owner_id,
-        u.firstname as owner_firstname
+        u.firstname as owner_firstname,
         u.lastname as owner_lastname
         -- другие поля пользователя при необходимости
       FROM offers o
