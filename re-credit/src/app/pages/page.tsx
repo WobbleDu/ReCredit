@@ -1,340 +1,598 @@
 'use client'
 
-import React, { useState } from 'react';
+import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
+interface UserData {
+  ID_User: number;
+  Login: string;
+  FirstName: string;
+  LastName: string;
+  BirthDate: string;
+  PhoneNumber: string;
+  INN: string;
+  PassportSerie: number;
+  PassportNumber: number;
+  Income: number;
+  Country: string;
+}
 
-const ProfilePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'borrow' | 'lend'>('borrow');
-  const [userData] = useState({
-    name: 'Иван',
-    lastName: 'Иванов',
-    phone: '+7 (900) 123-45-67',
-    birthDate: '15.05.1990',
-    country: 'Россия',
-    rating: 4.7,
-  });
+interface Offer {
+  id: number;
+  type: string;
+  creditsum: number;
+  interestrate: number;
+  term?: number;
+  ownerfirst_name?: string;
+  ownerlast_name?: string;
+}
 
-  const [offers] = useState({
-    borrow: [
-      {
-        id: 1,
-        amount: 500000,
-        rate: 12.5,
-        term: '12 месяцев',
-        purpose: 'Потребительские нужды',
-        date: '10.01.2023',
-        status: 'Активен'
-      },
-      {
-        id: 2,
-        amount: 1200000,
-        rate: 9.9,
-        term: '36 месяцев',
-        purpose: 'Ремонт квартиры',
-        date: '15.03.2023',
-        status: 'На рассмотрении'
+interface Notification {
+  id_notification: number;
+  user_id: number;
+  text: string;
+  flag: boolean;
+  datetime: string;
+}
+
+const IndexPage: React.FC = () => {
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'interestrate' | 'term' | 'amount'>('interestrate');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showAllOffers, setShowAllOffers] = useState(false); // Новое состояние для отображения всех предложений
+const getUserIdFromUrl = () => {
+  const match = window.location.pathname.match(/\/user\/(\d+)\/notifications/);
+  return match ? match[1] : null;
+};
+const userId = getUserIdFromUrl();
+  // Загрузка данных
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        
+        // Загрузка предложений с сервера
+        const response = await fetch('http://localhost:3001/offers');
+        if (!response.ok) {
+          throw new Error('Не удалось загрузить предложения');
+        }
+        const offerdata = await response.json();
+        setOffers(offerdata);
+        setFilteredOffers(offerdata);
+
+           // Загрузка уведомлений
+    const responseNotifications = await fetch('http://localhost:3001/user/2/notifications');
+    if (!responseNotifications.ok) {
+      throw new Error('Не удалось загрузить уведомления');
+    }
+    const notificationsData = await responseNotifications.json();
+    setNotifications(notificationsData);
+    //setUnreadCount(notificationsData.filter(n => !n.read).length);
+        
+    
+      } catch (err) {
+        console.error('Ошибка загрузки данных:', err);
+      } finally {
       }
-    ],
-    lend: [
-      {
-        id: 1,
-        amount: 1000000,
-        rate: 8.5,
-        term: '24 месяца',
-        date: '05.02.2023',
-        status: 'Активен',
-        funded: 650000
+    };
+    
+    fetchData();
+  }, []);
+
+  // Фильтрация и сортировка предложений
+  useEffect(() => {
+    let result = [...offers];
+    
+    // Фильтрация по поисковому запросу
+    if (searchTerm) {
+      result = result.filter(offer => 
+        offer.type.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Сортировка
+    result.sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a[sortBy] > b[sortBy] ? 1 : -1;
+      } else {
+        return a[sortBy] < b[sortBy] ? 1 : -1;
       }
-    ]
+    });
+    
+    setFilteredOffers(result);
+  }, [searchTerm, sortBy, sortOrder, offers]);
+
+  const markAsRead = (id: number) => {
+    setNotifications(notifications.map(n => 
+      n.user_id === id ? { ...n, read: true } : n
+    ));
+    setUnreadCount(unreadCount - 1);
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+  };
+
+  const formatDate = (dateInput: string | Date) => {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  
+  return date.toLocaleDateString('ru-RU', { 
+    day: 'numeric', 
+    month: 'short', 
+    hour: '2-digit', 
+    minute: '2-digit' 
   });
+};
+
+  const openProfile = () => {
+    alert('Переход в профиль пользователя');
+  };
+
+  const openCabinet = () => {
+    alert('Переход в личный кабинет');
+  };
+
+  const openAllNotifications = () => {
+    alert('Переход к списку всех уведомлений');
+  };
+
+  const toggleAllOffers = () => {
+    setShowAllOffers(!showAllOffers);
+  };
 
   return (
-    <div style={styles.container}>
-      {/* Шапка профиля */}
-      <header style={styles.header}>
-        <div style={styles.headerContent}>
-          <h1 style={styles.title}>Профиль пользователя</h1>
-          <nav style={styles.nav}>
+    <div style={{
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      maxWidth: 1200,
+      margin: '0 auto',
+      padding: 20,
+      color: '#333',
+      backgroundColor: '#f9f9f9',
+      minHeight: '100vh'
+    }}>
+      {/* Шапка */}
+      <header style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 30,
+        paddingBottom: 20,
+        borderBottom: '1px solid #e1e1e1'
+      }}>
+        <h1 style={{ 
+          color: '#2c3e50',
+          margin: 0,
+          fontSize: 28,
+          fontWeight: 600
+        }}>
+          ИМЯ, ФАМИЛИЯ ПОЛЬЗОВАТЕЛЯ
+        </h1>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+          <div style={{ position: 'relative' }}>
             <button 
-              onClick={() => window.location.href = '/account.tsx'}
-              style={styles.navButton}
+              onClick={() => setShowNotifications(!showNotifications)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                position: 'relative',
+                padding: 8,
+                borderRadius: 50,
+                backgroundColor: showNotifications ? '#e1e1e1' : 'transparent'
+              }}
             >
-              Личный кабинет
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="#2c3e50"/>
+              </svg>
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  backgroundColor: '#e74c3c',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 18,
+                  height: 18,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 12,
+                  fontWeight: 'bold'
+                }}>
+                  {unreadCount}
+                </span>
+              )}
             </button>
-            <button 
-              onClick={() => window.location.href = '/main_offers.tsx'}
-              style={styles.navButton}
-            >
-              Войти
-            </button>
-            <button 
-              onClick={() => window.location.href = '/notifications.tsx'}
-              style={styles.navButton}
-            >
-              Уведомления
-            </button>
-          </nav>
+            
+            {showNotifications && (
+              <div style={{
+                position: 'absolute',
+                right: 0,
+                top: 50,
+                width: 300,
+                backgroundColor: 'white',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                borderRadius: 8,
+                zIndex: 100,
+                maxHeight: 400,
+                overflowY: 'auto'
+              }}>
+                <div style={{ 
+                  padding: 15, 
+                  borderBottom: '1px solid #e1e1e1',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <h3 style={{ margin: 0, fontSize: 16 }}>Уведомления</h3>
+                  <button 
+                    onClick={markAllAsRead}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#3498db',
+                      cursor: 'pointer',
+                      fontSize: 14
+                    }}
+                  >
+                    Прочитать все
+                  </button>
+                </div>
+                {notifications.length === 0 ? (
+                  <div style={{ padding: 15, textAlign: 'center', color: '#7f8c8d' }}>
+                    Нет новых уведомлений
+                  </div>
+                ) : (
+                  <>
+                    {notifications.map((notification,index) => (
+                      <div 
+                        key={index}
+                        onClick={() => markAsRead(notification.user_id)}
+                        style={{
+                          padding: 15,
+                          borderBottom: '1px solid #e1e1e1',
+                          cursor: 'pointer',
+                          backgroundColor: notification.flag ? 'white' : '#f8f9fa'
+                        }}
+                      >
+                        <div style={{ 
+                          fontWeight: notification.flag ? 'normal' : 'bold',
+                          marginBottom: 5
+                        }}>
+                          {notification.text}
+                        </div>
+                        <div style={{ 
+                          fontSize: 12,
+                          color: '#7f8c8d'
+                        }}>
+                          {formatDate(notification.datetime)}
+                        </div>
+                      </div>
+                    ))}
+                    <div 
+                      onClick={openAllNotifications}
+                      style={{
+                        padding: 15,
+                        textAlign: 'center',
+                        color: '#3498db',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        borderTop: '1px solid #e1e1e1'
+                      }}
+                    >
+                      Показать все уведомления
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Кнопка профиля */}
+          <button 
+            onClick={openProfile}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              backgroundColor: '#ecf0f1',
+              padding: '8px 15px',
+              borderRadius: 20,
+              cursor: 'pointer',
+              border: 'none',
+              fontSize: 14,
+              fontWeight: 500
+            }}
+          >
+            <div style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              backgroundColor: '#3498db',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold'
+            }}>
+              U
+            </div>
+            Профиль
+          </button>
+          
+          {/* Кнопка личного кабинета */}
+          <button 
+            onClick={openCabinet}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              backgroundColor: '#2c3e50',
+              color: 'white',
+              padding: '8px 15px',
+              borderRadius: 20,
+              cursor: 'pointer',
+              border: 'none',
+              fontSize: 14,
+              fontWeight: 500,
+              transition: 'background-color 0.2s',
+              ':hover': {
+                backgroundColor: '#1a252f'
+              }
+            } as React.CSSProperties}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="white"/>
+            </svg>
+            Личный кабинет
+          </button>
         </div>
       </header>
 
-      {/* Основная информация о пользователе */}
-      <section style={styles.profileSection}>
-        <div style={styles.avatarPlaceholder}></div>
-        <div style={styles.profileInfo}>
-          <h2 style={styles.userName}>{userData.name} {userData.lastName}</h2>
-          <div style={styles.userDetails}>
-            <p><strong>Телефон:</strong> {userData.phone}</p>
-            <p><strong>Дата рождения:</strong> {userData.birthDate}</p>
-            <p><strong>Страна:</strong> {userData.country}</p>
-            <p><strong>Рейтинг:</strong> {userData.rating} ★</p>
+      {/* Основное содержимое */}
+      <main>
+        {/* Поиск и фильтрация */}
+        <section style={{
+          backgroundColor: 'white',
+          borderRadius: 10,
+          padding: 20,
+          marginBottom: 30,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+        }}>
+          <h2 style={{ 
+            marginTop: 0,
+            marginBottom: 20,
+            color: '#2c3e50',
+            fontSize: 20
+          }}>
+            Найти предложения
+          </h2>
+          
+          <div style={{
+            display: 'flex',
+            gap: 15,
+            marginBottom: 20
+          }}>
+            <div style={{ flex: 3 }}>
+              <input
+                type="text"
+                placeholder="Поиск по названию..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 15px',
+                  border: '1px solid #e1e1e1',
+                  borderRadius: 8,
+                  fontSize: 16,
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+            
+            <div style={{ flex: 2 }}>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                style={{
+                  width: '100%',
+                  padding: '10px 15px',
+                  border: '1px solid #e1e1e1',
+                  borderRadius: 8,
+                  fontSize: 16,
+                  outline: 'none',
+                  backgroundColor: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="interestRate">По процентной ставке</option>
+                <option value="term">По сроку</option>
+                <option value="amount">По сумме</option>
+              </select>
+            </div>
+            
+            <div style={{ flex: 1 }}>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as any)}
+                style={{
+                  width: '100%',
+                  padding: '10px 15px',
+                  border: '1px solid #e1e1e1',
+                  borderRadius: 8,
+                  fontSize: 16,
+                  outline: 'none',
+                  backgroundColor: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="asc">По возрастанию</option>
+                <option value="desc">По убыванию</option>
+              </select>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Табы с предложениями */}
-      <section style={styles.tabsSection}>
-        <div style={styles.tabs}>
-          <button
+        {/* Кнопка переключения между разделами */}
+        <div style={{ marginBottom: 20 }}>
+          <button 
+            onClick={toggleAllOffers}
             style={{
-              ...styles.tabButton,
-              ...(activeTab === 'borrow' ? styles.activeTab : {})
-            }}
-            onClick={() => setActiveTab('borrow')}
+              backgroundColor: showAllOffers ? '#2c3e50' : '#3498db',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 16,
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s',
+              ':hover': {
+                backgroundColor: showAllOffers ? '#1a252f' : '#2980b9'
+              }
+            } as React.CSSProperties}
           >
-            Ищет деньги ({offers.borrow.length})
-          </button>
-          <button
-            style={{
-              ...styles.tabButton,
-              ...(activeTab === 'lend' ? styles.activeTab : {})
-            }}
-            onClick={() => setActiveTab('lend')}
-          >
-            Может дать деньги ({offers.lend.length})
+            {showAllOffers ? 'Показать рекомендуемые' : 'Показать все предложения'}
           </button>
         </div>
-
-        {/* Список предложений */}
-        <div style={styles.offersList}>
-          {activeTab === 'borrow' ? (
-            offers.borrow.length > 0 ? (
-              offers.borrow.map(offer => (
-                <div key={offer.id} style={styles.offerCard}>
-                  <div style={styles.offerHeader}>
-                    <h3 style={styles.offerTitle}>{offer.purpose}</h3>
-                    <span style={{
-                      ...styles.statusBadge,
-                      ...(offer.status === 'Активен' ? styles.activeBadge : styles.pendingBadge)
+        
+        {/* Рекомендуемые предложения или Все предложения */}
+        <section>
+          <h2 style={{ 
+            marginTop: 0,
+            marginBottom: 20,
+            color: '#2c3e50',
+            fontSize: 20
+          }}>
+            {showAllOffers ? 'Все предложения' : 'Рекомендуемые предложения'}
+          </h2>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: 20
+          }}>
+            {(showAllOffers ? offers : filteredOffers).map((offer,index) => (
+              <div key={index} style={{
+                backgroundColor: 'white',
+                borderRadius: 10,
+                padding: 20,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                cursor: 'pointer',
+                ':hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: '0 5px 15px rgba(0,0,0,0.1)'
+                }
+              } as React.CSSProperties}>
+                <h3 style={{ 
+                  marginTop: 0,
+                  marginBottom: 10,
+                  color: '#2c3e50'
+                }}>
+                  {offer.type}
+                </h3>
+                
+                <div style={{ 
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: 15
+                }}>
+                  <div>
+                    <div style={{ 
+                      color: '#7f8c8d',
+                      fontSize: 14,
+                      marginBottom: 3
                     }}>
-                      {offer.status}
-                    </span>
+                      Сумма
+                    </div>
+                    <div style={{ 
+                      fontWeight: 'bold',
+                      fontSize: 18
+                    }}>
+                      {offer.creditsum} ₽
+                    </div>
                   </div>
-                  <div style={styles.offerDetails}>
-                    <p><strong>Сумма:</strong> {offer.amount.toLocaleString()} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.rate}%</p>
-                    <p><strong>Срок:</strong> {offer.term}</p>
-                    <p><strong>Дата размещения:</strong> {offer.date}</p>
+                  
+                  <div>
+                    <div style={{ 
+                      color: '#7f8c8d',
+                      fontSize: 14,
+                      marginBottom: 3
+                    }}>
+                      Ставка
+                    </div>
+                    <div style={{ 
+                      fontWeight: 'bold',
+                      fontSize: 18,
+                      color: '#27ae60'
+                    }}>
+                      {offer.interestrate}%
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div style={{ 
+                      color: '#7f8c8d',
+                      fontSize: 14,
+                      marginBottom: 3
+                    }}>
+                      Владелец
+                    </div>
+                    <div style={{ 
+                      fontWeight: 'bold',
+                      fontSize: 18
+                    }}>
+                      {offer.owner_name || 'Неизвестный владелец'}
+                    </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <p style={styles.noOffers}>Нет активных запросов на займ</p>
-            )
-          ) : (
-            offers.lend.length > 0 ? (
-              offers.lend.map(offer => (
-                <div key={offer.id} style={styles.offerCard}>
-                  <div style={styles.offerHeader}>
-                    <h3 style={styles.offerTitle}>Предложение инвестора</h3>
-                    <span style={{
-                      ...styles.statusBadge,
-                      ...styles.activeBadge
-                    }}>
-                      {offer.status}
-                    </span>
-                  </div>
-                  <div style={styles.offerDetails}>
-                    <p><strong>Доступная сумма:</strong> {offer.amount.toLocaleString()} ₽</p>
-                    <p><strong>Уже инвестировано:</strong> {offer.funded.toLocaleString()} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.rate}%</p>
-                    <p><strong>Срок:</strong> {offer.term}</p>
-                    <p><strong>Дата размещения:</strong> {offer.date}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p style={styles.noOffers}>Нет активных предложений инвестиций</p>
-            )
-          )}
-        </div>
-      </section>
+                
+                <button style={{
+                  width: '100%',
+                  marginTop: 15,
+                  padding: '12px 0',
+                  backgroundColor: '#3498db',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  ':hover': {
+                    backgroundColor: '#2980b9'
+                  }
+                } as React.CSSProperties}>
+                  Подробнее
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+      
+      {/* Подвал */}
+      <footer style={{
+        marginTop: 50,
+        paddingTop: 20,
+        borderTop: '1px solid #e1e1e1',
+        color: '#7f8c8d',
+        fontSize: 14,
+        textAlign: 'center'
+      }}>
+        © {new Date().getFullYear()} Брокерская платформа. Все права защищены.
+      </footer>
     </div>
   );
 };
 
-// Стили компонента
-const styles = {
-  container: {
-    fontFamily: '"Segoe UI", Roboto, sans-serif',
-    color: '#333',
-    lineHeight: 1.6,
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '20px'
-  },
-  header: {
-    backgroundColor: '#4f46e5',
-    color: 'white',
-    padding: '20px 0',
-    marginBottom: '30px',
-    borderRadius: '8px'
-  },
-  headerContent: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    maxWidth: '1100px',
-    margin: '0 auto',
-    padding: '0 20px'
-  },
-  title: {
-    margin: 0,
-    fontSize: '24px'
-  },
-  nav: {
-    display: 'flex',
-    gap: '10px'
-  },
-  navButton: {
-    padding: '8px 16px',
-    backgroundColor: 'transparent',
-    border: '1px solid white',
-    color: 'white',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-    ':hover': {
-      backgroundColor: 'rgba(255,255,255,0.1)'
-    }
-  },
-  profileSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '30px',
-    marginBottom: '40px',
-    padding: '20px',
-    backgroundColor: '#f9fafb',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-  },
-  avatarPlaceholder: {
-    width: '120px',
-    height: '120px',
-    borderRadius: '50%',
-    backgroundColor: '#e5e7eb',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '40px',
-    color: '#9ca3af'
-  },
-  profileInfo: {
-    flex: 1
-  },
-  userName: {
-    margin: '0 0 10px 0',
-    fontSize: '28px',
-    color: '#111827'
-  },
-  userDetails: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '10px',
-    p: {
-      margin: '5px 0'
-    },
-    strong: {
-      color: '#4b5563'
-    }
-  },
-  tabsSection: {
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-    overflow: 'hidden'
-  },
-  tabs: {
-    display: 'flex',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tabButton: {
-    flex: 1,
-    padding: '15px',
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: 500,
-    color: '#6b7280',
-    transition: 'all 0.3s'
-  },
-  activeTab: {
-    color: '#4f46e5',
-    borderBottom: '2px solid #4f46e5'
-  },
-  offersList: {
-    padding: '20px'
-  },
-  offerCard: {
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '15px',
-    transition: 'all 0.3s',
-    ':hover': {
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-    }
-  },
-  offerHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '15px'
-  },
-  offerTitle: {
-    margin: 0,
-    fontSize: '18px',
-    color: '#111827'
-  },
-  statusBadge: {
-    padding: '4px 10px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: 500
-  },
-  activeBadge: {
-    backgroundColor: '#d1fae5',
-    color: '#065f46'
-  },
-  pendingBadge: {
-    backgroundColor: '#fee2e2',
-    color: '#b91c1c'
-  },
-  offerDetails: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '10px',
-    p: {
-      margin: '5px 0',
-      strong: {
-        color: '#4b5563'
-      }
-    }
-  },
-  noOffers: {
-    textAlign: 'center',
-    color: '#6b7280',
-    padding: '40px 0'
-  }
-};
-
-export default ProfilePage;
+export default IndexPage;
