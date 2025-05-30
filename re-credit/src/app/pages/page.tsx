@@ -21,7 +21,6 @@ interface Offer {
   type: string;
   creditsum: number;
   interestrate: number;
-  term?: number;
   ownerfirst_name?: string;
   ownerlast_name?: string;
 }
@@ -36,26 +35,30 @@ interface Notification {
 
 const IndexPage: React.FC = () => {
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [userName, setUserName] = useState<string>('');
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'interestrate' | 'term' | 'creditsum'>('interestrate');
+  const [sortBy, setSortBy] = useState<'interestrate' | 'creditsum'>('interestrate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAllOffers, setShowAllOffers] = useState(false); // Новое состояние для отображения всех предложений
-
-
-
-  const userId = 3; // ID USER
-
-
 
   // Загрузка данных
   useEffect(() => {
     const fetchData = async () => {
       try {
-        
+        const userId = localStorage.getItem('userId');
+
+        // Получаем пользователя
+         const responseUserData = await fetch(`http://localhost:3001/users/${userId}`);
+         console.log(responseUserData);
+        const userData = await responseUserData.json();
+        console.log(userData);
+         setUserName(userData.firstname);
+
+
         // Загрузка предложений с сервера
         const response = await fetch('http://localhost:3001/offers');
         if (!response.ok) {
@@ -72,7 +75,7 @@ const IndexPage: React.FC = () => {
     }
     const notificationsData = await responseNotifications.json();
     setNotifications(notificationsData);
-    setUnreadCount(notificationsData.filter(n => !n.read).length);
+    setUnreadCount(notificationsData.filter(n => !n.flag).length);
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
       } finally {
@@ -169,7 +172,7 @@ const IndexPage: React.FC = () => {
           fontSize: 28,
           fontWeight: 600
         }}>
-          ИМЯ, ФАМИЛИЯ ПОЛЬЗОВАТЕЛЯ
+          {userName}
         </h1>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
@@ -414,7 +417,6 @@ const IndexPage: React.FC = () => {
                 }}
               >
                 <option value="interestRate">По процентной ставке</option>
-                <option value="term">По сроку</option>
                 <option value="amount">По сумме</option>
               </select>
             </div>

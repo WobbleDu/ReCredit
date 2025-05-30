@@ -33,9 +33,6 @@ const getNotificationByOwnerID = (id) => {
     pool.query('SELECT * FROM notifications WHERE user_id = $1', [id], (error, results) => {
       if (error) {
         reject(error);
-      }
-      if (results.rows.length === 0) {
-          resolve(null);
         } else {
           resolve(results.rows);
         }

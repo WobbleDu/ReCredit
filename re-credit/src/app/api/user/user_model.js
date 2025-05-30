@@ -46,7 +46,8 @@ const checkLogin = (body) => {
         }
         
         // Возвращаем true если пользователь найден, false если нет
-        resolve(results.rows.length > 0);
+        const user = results.rows[0];
+        resolve(user ? user.id_user : false);
       }
     );
   });

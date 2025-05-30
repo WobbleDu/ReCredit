@@ -42,18 +42,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         throw new Error(data.message || 'Ошибка авторизации');
       }
 
-      if (data) {
         // Если аутентификация успешна
-        if (rememberMe) {
-          localStorage.setItem('authData', JSON.stringify({ login }));
-          
-        }
-        sessionStorage.setItem('authData', JSON.stringify({ login }));
-        localStorage.setItem('userId', '2');
+        localStorage.setItem('userId', data.user_id);
         router.push('/pages');
-      } else {
-        throw new Error('Неверные учетные данные');
-      }
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка авторизации');
     } finally {

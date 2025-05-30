@@ -16,12 +16,15 @@ const user_model = require('./src/app/api/user/user_model')
 //LOGIN
 app.post('/', (req, res) => {
   user_model.checkLogin(req.body)
-    .then(response => {
-      res.status(201).send(response);
-      console.log('User login successfully:', response);
+    .then(userId => {
+      if (!userId) {
+        return res.status(401).json({ message: 'Неверный логин или пароль' });
+      }
+      res.status(200).json({ user_id: userId }); // Теперь фронтенд получит `user_id`
     })
     .catch(error => {
       console.error('Error login user:', error);
+      res.status(500).json({ message: 'Ошибка сервера' });
     });
 });
 app.get('/users', (req, res) => {
