@@ -21,8 +21,8 @@ interface Offer {
   type: string;
   creditsum: number;
   interestrate: number;
-  ownerfirst_name?: string;
-  ownerlast_name?: string;
+  owner_firstname: string; //было ownerfirst_name
+  owner_lastname: string; //было ownerlast_name
 }
 
 interface Notification {
@@ -65,6 +65,7 @@ const IndexPage: React.FC = () => {
           throw new Error('Не удалось загрузить предложения');
         }
         const offerdata = await response.json();
+        console.log(offerdata);
         setOffers(offerdata);
         setFilteredOffers(offerdata);
 
@@ -75,7 +76,7 @@ const IndexPage: React.FC = () => {
     }
     const notificationsData = await responseNotifications.json();
     setNotifications(notificationsData);
-    setUnreadCount(notificationsData.filter(n => !n.flag).length);
+    setUnreadCount(notificationsData.filter((n: { flag: any; }) => !n.flag).length);
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
       } finally {
@@ -553,7 +554,7 @@ const IndexPage: React.FC = () => {
                       fontWeight: 'bold',
                       fontSize: 18
                     }}>
-                      {offer.ownerfirst_name || 'Неизвестный владелец'}
+                      {offer.owner_firstname || 'Неизвестный владелец'}
                     </div>
                   </div>
                 </div>
