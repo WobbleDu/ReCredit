@@ -49,6 +49,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           
         }
         sessionStorage.setItem('authData', JSON.stringify({ login }));
+        localStorage.setItem('userId', '2');
         router.push('/pages');
       } else {
         throw new Error('Неверные учетные данные');
