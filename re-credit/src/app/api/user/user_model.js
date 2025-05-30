@@ -1,4 +1,4 @@
-const pool = require('pg/lib/db.js'); // Импортируем pool
+const pool = require('../db.js'); // Импортируем pool
 
 //GET
 const getUsers = () => {

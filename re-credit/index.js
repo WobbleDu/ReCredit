@@ -11,6 +11,7 @@ app.use(function (req, res, next) {
   next();
 });
 
+
 {//USERS
 const user_model = require('./src/app/api/user/user_model')
 //LOGIN
@@ -27,16 +28,16 @@ app.post('/', (req, res) => {
       res.status(500).json({ message: 'Ошибка сервера' });
     });
 });
-app.get('/users', (req, res) => {
-  user_model.getUsers()
-  .then(response => {
-    res.status(200).send(response);
-    console.log('Got all users');
-  })
-  .catch(error => {
-    res.status(500).send(error);
-  })
-})
+app.get('/users', async (req, res) => {
+  try {
+    const response = await user_model.getUsers(); // Используем асинхронность
+    res.status(200).send(response);              // Отправляем успешный ответ
+    console.log('Получил всех пользователей.');
+  } catch (error) {                              // Ловим любую возникшую ошибку
+    console.error('Ошибка получения пользователей:', error.message || error); // Логируем ошибку
+    res.status(500).json({ message: error.message }); // Возвращаем JSON с сообщением об ошибке
+  }
+});
 app.get('/users/:id',(req,res) =>{
     if (isNaN(req.params.id)) {  // Проверяем, что ID - число
     res.status(400).send('Invalid user ID');
