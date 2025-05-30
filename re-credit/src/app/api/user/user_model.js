@@ -54,15 +54,21 @@ const checkLogin = (body) => {
 //POST
 const createUser = (body) => {
   return new Promise(function(resolve, reject) {
-    const { login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country } = body
-    pool.query('INSERT INTO _users (login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', [login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
-      if (error) {
-        reject(error)
+    const { login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country } = body;
+    
+    pool.query(
+      'INSERT INTO _users (login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', 
+      [login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], 
+      (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results.rows[0]); // Возвращаем созданного пользователя
+        }
       }
-      resolve();
-    })
-  })
-}
+    );
+  });
+};
 
 //DELETE
 const deleteUser = (id) => {
