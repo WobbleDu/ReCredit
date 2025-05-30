@@ -73,7 +73,7 @@ const RegistrationForm: React.FC = () => {
       }
 
       // Если регистрация успешна
-      router.push('/pages/${createdUser.ID_User}/lk/page');
+      router.push('/pages/lk/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка регистрации');
     } finally {

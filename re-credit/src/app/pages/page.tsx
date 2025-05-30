@@ -40,7 +40,7 @@ const IndexPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'interestrate' | 'term' | 'amount'>('interestrate');
+  const [sortBy, setSortBy] = useState<'interestrate' | 'term' | 'creditsum'>('interestrate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAllOffers, setShowAllOffers] = useState(false); // Новое состояние для отображения всех предложений
@@ -72,9 +72,7 @@ const IndexPage: React.FC = () => {
     }
     const notificationsData = await responseNotifications.json();
     setNotifications(notificationsData);
-    //setUnreadCount(notificationsData.filter(n => !n.read).length);
-        
-    
+    setUnreadCount(notificationsData.filter(n => !n.read).length);
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
       } finally {
@@ -553,7 +551,7 @@ const IndexPage: React.FC = () => {
                       fontWeight: 'bold',
                       fontSize: 18
                     }}>
-                      {offer.owner_name || 'Неизвестный владелец'}
+                      {offer.ownerfirst_name || 'Неизвестный владелец'}
                     </div>
                   </div>
                 </div>
