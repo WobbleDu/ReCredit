@@ -14,7 +14,6 @@ interface Notification {
 const NotificationsPage: React.FC = () => {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   // Загрузка данных
   useEffect(() => {
@@ -31,7 +30,6 @@ const NotificationsPage: React.FC = () => {
         }
         const data = await response.json();
         setNotifications(data);
-        setUnreadCount(data.filter((n: Notification) => !n.flag).length);
       } catch (err) {
         console.error('Ошибка загрузки уведомлений:', err);
       }
@@ -67,7 +65,6 @@ const NotificationsPage: React.FC = () => {
       setNotifications(notifications.map(n => 
         n.id_notifications === id ? { ...n, flag: true } : n
       ));
-      setUnreadCount(prev => prev - 1);
     } catch (error) {
       console.error('Ошибка при пометке уведомления как прочитанного:', error);
     }
@@ -84,7 +81,6 @@ const NotificationsPage: React.FC = () => {
       );
       
       setNotifications(notifications.map(n => ({ ...n, flag: true })));
-      setUnreadCount(0);
     } catch (error) {
       console.error('Ошибка при пометке всех уведомлений как прочитанных:', error);
     }
@@ -101,7 +97,7 @@ const NotificationsPage: React.FC = () => {
   };
 
   const openProfile = () => {
-    router.push('/pages/profile/');
+    router.push(`/pages/profile/${localStorage.getItem('userId')}`);
   };
 
   const openCabinet = () => {

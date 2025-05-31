@@ -3,9 +3,9 @@
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 interface UserData {
-  ID_User: number;
+  id_user: number;
   Login: string;
-  FirstName: string;
+  firstname: string;
   LastName: string;
   BirthDate: string;
   PhoneNumber: string;
@@ -37,7 +37,7 @@ const IndexPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [userName, setUserName] = useState<string>('');
+  const [userData, setUserData] = useState<UserData | null>();
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -58,7 +58,7 @@ const IndexPage: React.FC = () => {
          console.log(responseUserData);
         const userData = await responseUserData.json();
         console.log(userData);
-         setUserName(userData.firstname);
+         setUserData(userData);
 
 
         // Загрузка предложений с сервера
@@ -181,8 +181,7 @@ const markAllAsRead = async () => {
 };
 
   const openProfile = () => {
-    const userId = params.id;
-    router.push(`/pages/profile/${userId}`);
+    router.push(`/pages/profile/${userData?.id_user}`);
   };
 
   const openCabinet = () => {
@@ -226,7 +225,7 @@ const markAllAsRead = async () => {
           fontSize: 28,
           fontWeight: 600
         }}>
-          {userName}
+          {userData?.firstname}
         </h1>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
