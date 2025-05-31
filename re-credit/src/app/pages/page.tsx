@@ -89,36 +89,38 @@ const IndexPage: React.FC = () => {
 
   // Фильтрация и сортировка предложений
   useEffect(() => {
-    let result = [...offers];
-    
-    // Фильтрация по поисковому запросу
-    if (searchTerm) {
-      result = result.filter(offer => 
-        offer.type.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  let result = [...offers];
+  
+  // Фильтрация по поисковому запросу (только для рекомендуемых)
+  if (!showAllOffers && searchTerm) {
+    result = result.filter(offer => 
+      offer.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${offer.owner_firstname} ${offer.owner_lastname}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+  
+  // Сортировка (применяется всегда)
+  result.sort((a, b) => {
+    if (sortBy === 'creditsum' || sortBy === 'interestrate') {
+      return sortOrder === 'asc' 
+        ? a[sortBy] - b[sortBy] 
+        : b[sortBy] - a[sortBy];
     }
-    
-    // Сортировка
-    result.sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a[sortBy] > b[sortBy] ? 1 : -1;
-      } else {
-        return a[sortBy] < b[sortBy] ? 1 : -1;
-      }
-    });
-    
-    setFilteredOffers(result);
-  }, [searchTerm, sortBy, sortOrder, offers]);
+    return 0;
+  });
+  
+  setFilteredOffers(result);
+}, [searchTerm, sortBy, sortOrder, offers, showAllOffers]);
 
   const markAsRead = (id: number) => {
     setNotifications(notifications.map(n => 
-      n.user_id === id ? { ...n, read: true } : n
+      n.id_notification === id ? { ...n, flag: true } : n
     ));
-    setUnreadCount(unreadCount - 1);
+    setUnreadCount(prev => prev - 1);
   };
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    setNotifications(notifications.map(n => ({ ...n, flag: true })));
     setUnreadCount(0);
   };
 
@@ -407,7 +409,7 @@ const IndexPage: React.FC = () => {
             <div style={{ flex: 2 }}>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as 'interestrate' | 'creditsum')}
                 style={{
                   width: '100%',
                   padding: '10px 15px',
@@ -419,8 +421,8 @@ const IndexPage: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                <option value="interestRate">По процентной ставке</option>
-                <option value="amount">По сумме</option>
+                <option value="interestrate">По процентной ставке</option>
+                <option value="creditsum">По сумме</option>
               </select>
             </div>
             
@@ -449,7 +451,10 @@ const IndexPage: React.FC = () => {
         {/* Кнопка переключения между разделами */}
         <div style={{ marginBottom: 20 }}>
           <button 
-            onClick={toggleAllOffers}
+            onClick={() => {
+				setShowAllOffers(!showAllOffers);
+				setSearchTerm(''); // Сбрасываем поиск при переключении
+		    }}
             style={{
               backgroundColor: showAllOffers ? '#2c3e50' : '#3498db',
               color: 'white',
@@ -485,7 +490,7 @@ const IndexPage: React.FC = () => {
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
             gap: 20
           }}>
-            {(showAllOffers ? offers : filteredOffers).map((offer,index) => (
+            {filteredOffers.map((offer, index) => (
               <div key={index} style={{
                 backgroundColor: 'white',
                 borderRadius: 10,
