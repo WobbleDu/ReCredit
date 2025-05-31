@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 interface UserData {
   ID_User: number;
@@ -35,6 +35,7 @@ interface Notification {
 
 const IndexPage: React.FC = () => {
   const router = useRouter();
+  const params = useParams();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [userName, setUserName] = useState<string>('');
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
@@ -180,7 +181,7 @@ const markAllAsRead = async () => {
 };
 
   const openProfile = () => {
-    const userId = localStorage.getItem('userId')
+    const userId = params.id;
     router.push(`/pages/profile/${userId}`);
   };
 
