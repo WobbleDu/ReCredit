@@ -163,13 +163,13 @@ const ProfilePage: React.FC = () => {
           <h1 className="title">Профиль пользователя</h1>
           <nav className="nav">
             <button 
-              onClick={() => router.push('/account')}
+              onClick={() => router.push('/pages/lk')}
               className="navButton"
             >
               Личный кабинет
             </button>
             <button 
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/pages')}
               className="navButton"
             >
               На главную
