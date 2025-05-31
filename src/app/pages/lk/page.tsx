@@ -54,7 +54,7 @@ const AccountPage: React.FC = () => {
   }, []);
 
    // Функции навигации
-  const navigateToProfile = () => router.push('/pages/profile');
+  const navigateToProfile = () => router.push(`/pages/profile/${localStorage.getItem('userId')}`);
   const navigateToMain = () => router.push('/pages');
   const navigateToNotifications = () => router.push('/pages/notifications');
   const navigateToCreateOffers = () => router.push('/pages/create_offers');
