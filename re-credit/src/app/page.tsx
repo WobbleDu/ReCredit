@@ -1,4 +1,4 @@
-'use client'
+    'use client'
 
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -10,7 +10,7 @@ const Index: React.FC = () => {
     router.push('http://localhost:3000/pages/login');
   }, [router]); // router добавлен в зависимости useEffect
 
-  return null; // или лоадер/заглушку, если нужно
+  return null;
 };
 
 export default Index;
