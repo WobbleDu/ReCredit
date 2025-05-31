@@ -1,16 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface UserData {
   ID_User: number;
-  Login: string;
-  FirstName: string;
-  LastName: string;
-  BirthDate: string;
-  PhoneNumber: string;
-  INN: string;
+  login: string;
+  firstname: string;
+  lastname: string;
+  birthdate: string;
+  phonenumber: string;
+  inn: string;
   PassportSerie: number;
   PassportNumber: number;
   Income: number;
@@ -26,25 +26,63 @@ interface Offer {
   State: number;
   DateStart: string;
   DateEnd: string;
+  Owner_ID?: number;
+  Guest_ID?: number;
+}
+
+interface LendOffer extends Offer {
+  funded?: number;
 }
 
 const ProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'borrow' | 'lend'>('borrow');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [borrowOffers, setBorrowOffers] = useState<Offer[]>([]);
-  const [lendOffers, setLendOffers] = useState<Offer[]>([]);
+  const [lendOffers, setLendOffers] = useState<LendOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Получаем userId из URL или localStorage
   const router = useRouter();
-  const userId = localStorage.getItem('userId');
+
+  // Обработчик клика по предложению
+  const handleOfferClick = (offerId: number) => {
+    router.push(`/offers/${offerId}`);
+  };
+
+  // Форматирование даты рождения
+  const formatBirthDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU');
+  };
+
+  // Получение статуса предложения
+  const getStatus = (state: number) => {
+    switch(state) {
+      case 0: return 'На рассмотрении';
+      case 1: return 'Активен';
+      case 2: return 'Завершен';
+      default: return 'Неизвестен';
+    }
+  };
+
+  // Расчет срока кредита
+  const calculateTerm = (start: string, end: string): string => {
+    if (!start || !end) return 'Не указан';
+    
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 
+      + (endDate.getMonth() - startDate.getMonth());
+    
+    return `${months} месяцев`;
+  };
 
   // Загрузка данных пользователя и его предложений
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const userId = 1;
         
         // Загрузка данных пользователя
         const userResponse = await fetch(`http://localhost:3001/users/${userId}`);
@@ -55,15 +93,15 @@ const ProfilePage: React.FC = () => {
         setUserData(userData);
 
         // Загрузка предложений пользователя
-        const offersResponse = await fetch(`http://localhost:3001/users/${userId}/offers`);
+        const offersResponse = await fetch(`http://localhost:3001/offers/${userId}`);
         if (!offersResponse.ok) {
           throw new Error('Не удалось загрузить предложения пользователя');
         }
         const allOffers = await offersResponse.json();
 
-        // Разделяем предложения на займы (где пользователь owner) и инвестиции (где пользователь guest)
-        const borrows = allOffers.filter((offer: any) => offer.Owner_ID == userId);
-        const lends = allOffers.filter((offer: any) => offer.Guest_ID == userId);
+        // Разделяем предложения на займы и инвестиции
+        const borrows = allOffers.filter((offer: Offer) => offer.Owner_ID == userId);
+        const lends = allOffers.filter((offer: Offer) => offer.Guest_ID == userId);
 
         setBorrowOffers(borrows);
         setLendOffers(lends);
@@ -75,10 +113,8 @@ const ProfilePage: React.FC = () => {
       }
     };
 
-    if (userId) {
-      fetchData();
-    }
-  }, [userId]);
+    fetchData();
+  }, []);
 
   if (loading) {
     return (
@@ -103,12 +139,6 @@ const ProfilePage: React.FC = () => {
       </div>
     );
   }
-
-  // Форматирование даты рождения
-  const formatBirthDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU');
-  };
 
   return (
     <div style={styles.container}>
@@ -136,15 +166,15 @@ const ProfilePage: React.FC = () => {
       {/* Основная информация о пользователе */}
       <section style={styles.profileSection}>
         <div style={styles.avatarPlaceholder}>
-          {userData.FirstName.charAt(0)}{userData.LastName.charAt(0)}
+          {userData.firstname.charAt(0)}{userData.lastname.charAt(0)}
         </div>
         <div style={styles.profileInfo}>
-          <h2 style={styles.userName}>{userData.FirstName} {userData.LastName}</h2>
+          <h2 style={styles.userName}>{userData.firstname} {userData.lastname}</h2>
           <div style={styles.userDetails}>
-            <p><strong>Телефон:</strong> {userData.PhoneNumber}</p>
-            <p><strong>Дата рождения:</strong> {formatBirthDate(userData.BirthDate)}</p>
+            <p><strong>Телефон:</strong> {userData.phonenumber}</p>
+            <p><strong>Дата рождения:</strong> {formatBirthDate(userData.birthdate)}</p>
             <p><strong>Страна:</strong> {userData.Country}</p>
-            <p><strong>Доход:</strong> {userData.Income.toLocaleString()} ₽</p>
+            <p><strong>Доход:</strong> {userData.Income.toLocaleString('ru-RU')} ₽</p>
           </div>
         </div>
       </section>
@@ -176,7 +206,7 @@ const ProfilePage: React.FC = () => {
         <div style={styles.offersList}>
           {activeTab === 'borrow' ? (
             borrowOffers.length > 0 ? (
-              borrowOffers.map(offer => (
+              borrowOffers.map((offer) => (
                 <div key={offer.ID_Offer} style={styles.offerCard}>
                   <div style={styles.offerHeader}>
                     <h3 style={styles.offerTitle}>{offer.Type}</h3>
@@ -185,16 +215,21 @@ const ProfilePage: React.FC = () => {
                       ...(offer.State === 1 ? styles.activeBadge : 
                            offer.State === 2 ? styles.completedBadge : styles.pendingBadge)
                     }}>
-                      {offer.State === 0 ? 'Не начат' : 
-                       offer.State === 1 ? 'В работе' : 'Завершен'}
+                      {getStatus(offer.State)}
                     </span>
                   </div>
                   <div style={styles.offerDetails}>
-                    <p><strong>Сумма:</strong> {offer.CreditSum.toLocaleString()} ₽</p>
+                    <p><strong>Сумма:</strong> {offer.CreditSum.toLocaleString('ru-RU')} ₽</p>
                     <p><strong>Ставка:</strong> {offer.InterestRate}%</p>
+                    <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
                     <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'Не указана'}</p>
-                    <p><strong>Дата окончания:</strong> {offer.DateEnd ? formatBirthDate(offer.DateEnd) : 'Не указана'}</p>
                   </div>
+                  <button 
+                    style={styles.detailsButton}
+                    onClick={() => handleOfferClick(offer.ID_Offer)}
+                  >
+                    Подробнее
+                  </button>
                 </div>
               ))
             ) : (
@@ -202,7 +237,7 @@ const ProfilePage: React.FC = () => {
             )
           ) : (
             lendOffers.length > 0 ? (
-              lendOffers.map(offer => (
+              lendOffers.map((offer) => (
                 <div key={offer.ID_Offer} style={styles.offerCard}>
                   <div style={styles.offerHeader}>
                     <h3 style={styles.offerTitle}>{offer.Type}</h3>
@@ -211,16 +246,22 @@ const ProfilePage: React.FC = () => {
                       ...(offer.State === 1 ? styles.activeBadge : 
                            offer.State === 2 ? styles.completedBadge : styles.pendingBadge)
                     }}>
-                      {offer.State === 0 ? 'Не начат' : 
-                       offer.State === 1 ? 'В работе' : 'Завершен'}
+                      {getStatus(offer.State)}
                     </span>
                   </div>
                   <div style={styles.offerDetails}>
-                    <p><strong>Сумма:</strong> {offer.CreditSum.toLocaleString()} ₽</p>
+                    <p><strong>Сумма:</strong> {offer.CreditSum.toLocaleString('ru-RU')} ₽</p>
                     <p><strong>Ставка:</strong> {offer.InterestRate}%</p>
+                    <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
                     <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'Не указана'}</p>
-                    <p><strong>Дата окончания:</strong> {offer.DateEnd ? formatBirthDate(offer.DateEnd) : 'Не указана'}</p>
+                    <p><strong>Инвестировано:</strong> {offer.funded?.toLocaleString('ru-RU') || '0'} ₽</p>
                   </div>
+                  <button 
+                    style={styles.detailsButton}
+                    onClick={() => handleOfferClick(offer.ID_Offer)}
+                  >
+                    Подробнее
+                  </button>
                 </div>
               ))
             ) : (
@@ -233,7 +274,7 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-// Стили компонента (остаются такими же, как в оригинале)
+// Стили компонента
 const styles = {
   container: {
     fontFamily: '"Segoe UI", Roboto, sans-serif',
@@ -390,6 +431,7 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
     gap: '10px',
+    marginBottom: '15px',
     p: {
       margin: '5px 0',
       strong: {
@@ -397,11 +439,26 @@ const styles = {
       }
     }
   } as React.CSSProperties,
+  detailsButton: {
+    width: '100%',
+    padding: '10px 0',
+    backgroundColor: '#3498db',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#2980b9'
+    }
+  } as React.CSSProperties,
   noOffers: {
     textAlign: 'center',
     color: '#6b7280',
     padding: '40px 0'
-  }
+  }as React.CSSProperties
 };
 
 export default ProfilePage;
