@@ -75,7 +75,7 @@ const ProfilePage: React.FC = () => {
     try {
       const startDate = new Date(start);
       const endDate = new Date(end);
-      if (isNaN(startDate.getTime()) return 'Неверная дата начала';
+      if (isNaN(startDate.getTime())) return 'Неверная дата начала';
       if (isNaN(endDate.getTime())) return 'Неверная дата окончания';
       
       const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 
