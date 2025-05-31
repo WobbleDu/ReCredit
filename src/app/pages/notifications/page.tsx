@@ -21,7 +21,9 @@ const NotificationsPage: React.FC = () => {
     const fetchNotifications = async () => {
       try {
         const userId = localStorage.getItem('userId');
-        if (!userId) return;
+        if (!userId) {
+          router.push('http://localhost:3000/login')
+        };
 
         const response = await fetch(`http://localhost:3001/user/${userId}/notifications`);
         if (!response.ok) {
@@ -99,7 +101,7 @@ const NotificationsPage: React.FC = () => {
   };
 
   const openProfile = () => {
-    router.push('/pages/profile');
+    router.push('/pages/profile/');
   };
 
   const openCabinet = () => {
@@ -111,15 +113,14 @@ const NotificationsPage: React.FC = () => {
   };
 
   return (
-  <div style={{backgroundColor: '#f9f9f9'}}>
+  <div>
     <div style={{
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
       maxWidth: 1200,
       margin: '0 auto',
       padding: 20,
       color: '#333',
-      backgroundColor: '#f9f9f9',
-      minHeight: '100vh'
+      height: '100%'
     }}>
       {/* Шапка */}
       <header style={{
@@ -259,7 +260,7 @@ const NotificationsPage: React.FC = () => {
         <div style={{
           backgroundColor: 'white',
           borderRadius: 10,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
         }}>
           {notifications.length === 0 ? (
             <div style={{ 
@@ -278,7 +279,6 @@ const NotificationsPage: React.FC = () => {
                   padding: '15px 20px',
                   borderBottom: '1px solid #e1e1e1',
                   cursor: 'pointer',
-                  backgroundColor: notification.flag ? 'white' : '#f8f9fa',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -317,18 +317,6 @@ const NotificationsPage: React.FC = () => {
           )}
         </div>
       </main>
-      
-      {/* Подвал */}
-      <footer style={{
-        marginTop: 50,
-        paddingTop: 20,
-        borderTop: '1px solid #e1e1e1',
-        color: '#7f8c8d',
-        fontSize: 14,
-        textAlign: 'center'
-      }}>
-        © {new Date().getFullYear()} Брокерская платформа. Все права защищены.
-      </footer>
     </div>
 </div>
   );

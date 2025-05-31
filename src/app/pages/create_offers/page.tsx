@@ -91,12 +91,10 @@ const CreateOfferPage: React.FC = () => {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      minHeight: 'calc(100vh - 57px)',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f3f4f6',
-      padding: '20px'
+      justifyContent: 'center'
     }}>
       <div style={{
         maxWidth: '600px',

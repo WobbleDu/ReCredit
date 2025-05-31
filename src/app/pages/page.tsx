@@ -647,18 +647,6 @@ const markAllAsRead = async () => {
           </div>
         </section>
       </main>
-      
-      {/* Подвал */}
-      <footer style={{
-        marginTop: 50,
-        paddingTop: 20,
-        borderTop: '1px solid #e1e1e1',
-        color: '#7f8c8d',
-        fontSize: 14,
-        textAlign: 'center'
-      }}>
-        © {new Date().getFullYear()} Все права защищены.
-      </footer>
     </div>
 </div>
   );

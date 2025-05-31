@@ -241,7 +241,7 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="container">
+    <div className="container" style={{height: '100%'}}>
       <header className="header">
         <div className="headerContent">
           <h1 className="title">Профиль пользователя</h1>

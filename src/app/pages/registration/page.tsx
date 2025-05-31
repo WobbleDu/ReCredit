@@ -87,7 +87,7 @@ const RegistrationForm: React.FC = () => {
   
     return (
     <div style={{
-      minHeight: '100vh',
+      height: '100%',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

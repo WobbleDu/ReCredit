@@ -26,8 +26,22 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{margin: 0, padding: 0}}
       >
-        {children}
+        <div style={{minHeight: 'calc(100vh - 57px)'}}>
+          {children}
+        </div>
+
+        {/* Подвал */}
+        <footer style={{
+          padding: 20,
+          borderTop: '1px solid #e1e1e1',
+          color: '#7f8c8d',
+          fontSize: 14,
+          textAlign: 'center'
+        }}>
+          © {new Date().getFullYear()} Все права защищены.
+        </footer>
       </body>
     </html>
   );

@@ -65,7 +65,7 @@ const AccountPage: React.FC = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh'
+        height: '100%'
       }}>
         <p>Загрузка данных пользователя...</p>
       </div>
@@ -78,7 +78,7 @@ const AccountPage: React.FC = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh',
+        height: '100%',
         color: 'red'
       }}>
         <p>{error}</p>
@@ -92,7 +92,7 @@ const AccountPage: React.FC = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh'
+        height: '100%'
       }}>
         <p>Данные пользователя не найдены</p>
       </div>
@@ -101,8 +101,7 @@ const AccountPage: React.FC = () => {
 
   return (
     <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f3f4f6',
+      height: '100%',
       padding: '1rem'
     }}>
       <div style={{
@@ -111,10 +110,11 @@ const AccountPage: React.FC = () => {
         margin: '0 auto',
         backgroundColor: 'white',
         borderRadius: '0.5rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        boxShadow: 'rgb(47 47 47 / 10%) 0px 1px 15px',
         padding: '2rem',
         marginTop: '2rem',
-        marginBottom: '2rem'
+        marginBottom: '2rem',
+        height: '100%'
       }}>
         <div style={{
           display: 'flex',
