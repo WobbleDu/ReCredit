@@ -62,7 +62,7 @@ const ProfilePage: React.FC = () => {
 
   const getStatus = (state: number) => {
     switch(state) {
-      case 0: return 'На рассмотрении';
+      case 0: return 'Не активен';
       case 1: return 'Активен';
       case 2: return 'Завершен';
       default: return 'Неизвестен';
