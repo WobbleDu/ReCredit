@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 interface UserData {
   ID_User: number;
@@ -34,6 +34,7 @@ interface Notification {
 }
 
 const IndexPage: React.FC = () => {
+  const router = useRouter();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [userName, setUserName] = useState<string>('');
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
@@ -134,6 +135,7 @@ const IndexPage: React.FC = () => {
 
   const openProfile = () => {
     alert('Переход в профиль пользователя');
+    router.push('/pages/profile');
   };
 
   const openCabinet = () => {
