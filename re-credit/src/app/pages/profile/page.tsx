@@ -44,18 +44,15 @@ const ProfilePage: React.FC = () => {
 
   const router = useRouter();
 
-  // Обработчик клика по предложению
   const handleOfferClick = (offerId: number) => {
     router.push(`/offers/${offerId}`);
   };
 
-  // Форматирование даты рождения
   const formatBirthDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ru-RU');
   };
 
-  // Получение статуса предложения
   const getStatus = (state: number) => {
     switch(state) {
       case 0: return 'На рассмотрении';
@@ -65,7 +62,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Расчет срока кредита
   const calculateTerm = (start: string, end: string): string => {
     if (!start || !end) return 'Не указан';
     
@@ -77,7 +73,6 @@ const ProfilePage: React.FC = () => {
     return `${months} месяцев`;
   };
 
-  // Загрузка данных пользователя и его предложений
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -99,9 +94,12 @@ const ProfilePage: React.FC = () => {
         }
         const allOffers = await offersResponse.json();
 
+        // Проверяем, что allOffers - массив, если нет - преобразуем или используем пустой массив
+        const offersArray = Array.isArray(allOffers) ? allOffers : [];
+
         // Разделяем предложения на займы и инвестиции
-        const borrows = allOffers.filter((offer: Offer) => offer.Owner_ID == userId);
-        const lends = allOffers.filter((offer: Offer) => offer.Guest_ID == userId);
+        const borrows = offersArray.filter((offer: Offer) => offer.Owner_ID == userId);
+        const lends = offersArray.filter((offer: Offer) => offer.Guest_ID == userId);
 
         setBorrowOffers(borrows);
         setLendOffers(lends);
@@ -142,7 +140,6 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      {/* Шапка профиля */}
       <header style={styles.header}>
         <div style={styles.headerContent}>
           <h1 style={styles.title}>Профиль пользователя</h1>
@@ -163,7 +160,6 @@ const ProfilePage: React.FC = () => {
         </div>
       </header>
 
-      {/* Основная информация о пользователе */}
       <section style={styles.profileSection}>
         <div style={styles.avatarPlaceholder}>
           {userData.firstname.charAt(0)}{userData.lastname.charAt(0)}
@@ -179,7 +175,6 @@ const ProfilePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Табы с предложениями */}
       <section style={styles.tabsSection}>
         <div style={styles.tabs}>
           <button
@@ -202,7 +197,6 @@ const ProfilePage: React.FC = () => {
           </button>
         </div>
 
-        {/* Список предложений */}
         <div style={styles.offersList}>
           {activeTab === 'borrow' ? (
             borrowOffers.length > 0 ? (
@@ -274,7 +268,7 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-// Стили компонента
+// Стили компонента (остаются без изменений)
 const styles = {
   container: {
     fontFamily: '"Segoe UI", Roboto, sans-serif',
@@ -458,7 +452,7 @@ const styles = {
     textAlign: 'center',
     color: '#6b7280',
     padding: '40px 0'
-  }as React.CSSProperties
+  } as React.CSSProperties
 };
 
 export default ProfilePage;

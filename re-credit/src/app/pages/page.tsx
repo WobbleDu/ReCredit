@@ -142,10 +142,12 @@ const IndexPage: React.FC = () => {
 
   const openCabinet = () => {
     alert('Переход в личный кабинет');
+    router.push('/pages/lk')
   };
 
   const openAllNotifications = () => {
     alert('Переход к списку всех уведомлений');
+    router.push('/pages/notifications')
   };
 
   const toggleAllOffers = () => {
