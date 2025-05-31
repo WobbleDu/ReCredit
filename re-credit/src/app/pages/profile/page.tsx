@@ -13,9 +13,9 @@ interface UserData {
   inn: string;
   PassportSerie: number;
   PassportNumber: number;
-  Income: number;
-  Country: string;
-  DTI: number;
+  income: number;
+  country: string;
+  dti: number;
 }
 
 interface Offer {
@@ -171,8 +171,8 @@ const ProfilePage: React.FC = () => {
           <div style={styles.userDetails}>
             <p><strong>Телефон:</strong> {userData?.phonenumber || 'не указан'}</p>
             <p><strong>Дата рождения:</strong> {userData?.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</p>
-            <p><strong>Страна:</strong> {userData?.Country || 'не указана'}</p>
-            <p><strong>Доход:</strong> {(userData?.Income ?? 0).toLocaleString('ru-RU')} ₽</p>
+            <p><strong>Страна:</strong> {userData?.country || 'не указана'}</p>
+            <p><strong>Доход:</strong> {(userData?.income)} ₽</p>
           </div>
         </div>
       </section>
