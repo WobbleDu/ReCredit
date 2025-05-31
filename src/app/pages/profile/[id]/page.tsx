@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useParams} from 'next/navigation';
+
 interface UserData {
   ID_User: number;
   login: string;
@@ -54,7 +54,7 @@ const ProfilePage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const params = useParams();
+
   const router = useRouter();
 
   const handleOfferClick = (offerId: number) => {
@@ -166,7 +166,7 @@ const ProfilePage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const userId = params.id;
+        const userId = localStorage.getItem('userId');
         if (!userId) throw new Error('Пользователь не авторизован');
         
         // Загрузка данных пользователя
@@ -495,7 +495,7 @@ const ProfilePage: React.FC = () => {
         }
         
         .header {
-          background-color: #4f46e5;
+          background-color: #3498db;
           color: white;
           padding: 20px 0;
           margin-bottom: 30px;
@@ -609,8 +609,8 @@ const ProfilePage: React.FC = () => {
         }
         
         .activeTab {
-          color: #4f46e5;
-          border-bottom: 2px solid #4f46e5;
+          color: #3498db;
+          border-bottom: 2px solid #3498db;
         }
         
         .offersList {
@@ -661,7 +661,7 @@ const ProfilePage: React.FC = () => {
         
         .completedBadge {
           background-color: #dbeafe;
-          color: #3498db;
+          color: #1e40af;
         }
         
         .offerDetails {
@@ -676,7 +676,7 @@ const ProfilePage: React.FC = () => {
         }
         
         .offerDetails strong {
-          color: #3498db;
+          color: #4b5563;
         }
         
         .detailsButton {
