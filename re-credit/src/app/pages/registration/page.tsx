@@ -73,6 +73,7 @@ const RegistrationForm: React.FC = () => {
       }
 
       // Если регистрация успешна
+      localStorage.setItem('userId', data.user_id);
       router.push('/pages/lk/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка регистрации');
@@ -81,7 +82,7 @@ const RegistrationForm: React.FC = () => {
     }
   };
   const handleLoginClick = () => {
-    router.push('http://localhost:3000');
+    router.push('http://localhost:3000/pages/login');
   };
   
     return (
