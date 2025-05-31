@@ -661,7 +661,7 @@ const ProfilePage: React.FC = () => {
         
         .completedBadge {
           background-color: #dbeafe;
-          color: #1e40af;
+          color: #3498db;
         }
         
         .offerDetails {
@@ -676,7 +676,7 @@ const ProfilePage: React.FC = () => {
         }
         
         .offerDetails strong {
-          color: #4b5563;
+          color: #3498db;
         }
         
         .detailsButton {

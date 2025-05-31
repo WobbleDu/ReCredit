@@ -651,7 +651,7 @@ const markAllAsRead = async () => {
         fontSize: 14,
         textAlign: 'center'
       }}>
-        © {new Date().getFullYear()} Паша лох. Все права защищены.
+        © {new Date().getFullYear()} Все права защищены.
       </footer>
     </div>
 </div>
