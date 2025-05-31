@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { useParams} from 'next/navigation';
 interface UserData {
   ID_User: number;
   login: string;
@@ -36,6 +36,14 @@ interface LendOffer extends Offer {
   funded?: number;
 }
 
+interface Notification {
+  id_notifications: number;
+  user_id: number;
+  text: string;
+  flag: boolean;
+  datetime: string;
+}
+
 const ProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'borrow' | 'lend'>('borrow');
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -43,7 +51,10 @@ const ProfilePage: React.FC = () => {
   const [lendOffers, setLendOffers] = useState<LendOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const params = useParams();
   const router = useRouter();
 
   const handleOfferClick = (offerId: number) => {
@@ -58,6 +69,16 @@ const ProfilePage: React.FC = () => {
     } catch {
       return 'Неверная дата';
     }
+  };
+
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('ru-RU', { 
+      day: 'numeric', 
+      month: 'short', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   };
 
   const getStatus = (state: number) => {
@@ -87,11 +108,65 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
+    try {
+      const response = await fetch(`http://localhost:3001/notifications/${notificationId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ flag: isRead }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Не удалось обновить уведомление');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Ошибка при обновлении уведомления:', error);
+      throw error;
+    }
+  };
+
+  const markAsRead = async (id: number) => {
+    try {
+      await updateNotificationOnServer(id, true);
+      setNotifications(notifications.map(n => 
+        n.id_notifications === id ? { ...n, flag: true } : n
+      ));
+      setUnreadCount(prev => prev - 1);
+    } catch (error) {
+      console.error('Ошибка при пометке уведомления как прочитанного:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const unreadIds = notifications
+        .filter(n => !n.flag)
+        .map(n => n.id_notifications);
+      
+      await Promise.all(
+        unreadIds.map(id => updateNotificationOnServer(id, true))
+      );
+      
+      setNotifications(notifications.map(n => ({ ...n, flag: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Ошибка при пометке всех уведомлений как прочитанных:', error);
+    }
+  };
+
+  const openAllNotifications = () => {
+    router.push('/pages/notifications');
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const userId = localStorage.getItem('userId');
+        const userId = params.id;
         if (!userId) throw new Error('Пользователь не авторизован');
         
         // Загрузка данных пользователя
@@ -121,6 +196,15 @@ const ProfilePage: React.FC = () => {
 
         setBorrowOffers(borrows);
         setLendOffers(lends);
+
+        // Загрузка уведомлений
+        const responseNotifications = await fetch(`http://localhost:3001/user/${userId}/notifications`);
+        if (!responseNotifications.ok) {
+          throw new Error('Не удалось загрузить уведомления');
+        }
+        const notificationsData = await responseNotifications.json();
+        setNotifications(notificationsData);
+        setUnreadCount(notificationsData.filter((n: { flag: any; }) => !n.flag).length);
         
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
@@ -162,6 +246,127 @@ const ProfilePage: React.FC = () => {
         <div className="headerContent">
           <h1 className="title">Профиль пользователя</h1>
           <nav className="nav">
+            <div style={{ position: 'relative', marginRight: '10px' }}>
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  padding: 8,
+                  borderRadius: 50,
+                  backgroundColor: showNotifications ? '#e1e1e1' : 'transparent'
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="white"/>
+                </svg>
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    backgroundColor: '#e74c3c',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 'bold'
+                  }}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              
+              {showNotifications && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 50,
+                  width: 300,
+                  backgroundColor: 'white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  borderRadius: 8,
+                  zIndex: 100,
+                  maxHeight: 400,
+                  overflowY: 'auto'
+                }}>
+                  <div style={{ 
+                    padding: 15, 
+                    borderBottom: '1px solid #e1e1e1',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: 16, color: '#2c3e50' }}>Уведомления</h3>
+                    <button 
+                      onClick={markAllAsRead}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#3498db',
+                        cursor: 'pointer',
+                        fontSize: 14
+                      }}
+                    >
+                      Прочитать все
+                    </button>
+                  </div>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: 15, textAlign: 'center', color: '#7f8c8d' }}>
+                      Нет новых уведомлений
+                    </div>
+                  ) : (
+                    <>
+                      {notifications.map((notification) => (
+                        <div 
+                          key={notification.id_notifications}
+                          onClick={() => markAsRead(notification.id_notifications)}
+                          style={{
+                            padding: 15,
+                            borderBottom: '1px solid #e1e1e1',
+                            cursor: 'pointer',
+                            backgroundColor: notification.flag ? 'white' : '#f8f9fa'
+                          }}
+                        >
+                          <div style={{ 
+                            fontWeight: notification.flag ? 'normal' : 'bold',
+                            marginBottom: 5,
+                            color: '#2c3e50'
+                          }}>
+                            {notification.text}
+                          </div>
+                          <div style={{ 
+                            fontSize: 12,
+                            color: '#7f8c8d'
+                          }}>
+                            {formatDate(notification.datetime)}
+                          </div>
+                        </div>
+                      ))}
+                      <div 
+                        onClick={openAllNotifications}
+                        style={{
+                          padding: 15,
+                          textAlign: 'center',
+                          color: '#3498db',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          borderTop: '1px solid #e1e1e1'
+                        }}
+                      >
+                        Показать все уведомления
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
             <button 
               onClick={() => router.push('/pages/lk')}
               className="navButton"
@@ -314,6 +519,7 @@ const ProfilePage: React.FC = () => {
         .nav {
           display: flex;
           gap: 10px;
+          align-items: center;
         }
         
         .navButton {

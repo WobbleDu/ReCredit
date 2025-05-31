@@ -111,6 +111,7 @@ const NotificationsPage: React.FC = () => {
   };
 
   return (
+  <div style={{backgroundColor: '#f9f9f9'}}>
     <div style={{
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
       maxWidth: 1200,
@@ -329,6 +330,7 @@ const NotificationsPage: React.FC = () => {
         © {new Date().getFullYear()} Брокерская платформа. Все права защищены.
       </footer>
     </div>
+</div>
   );
 };
 

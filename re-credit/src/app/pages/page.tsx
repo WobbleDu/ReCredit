@@ -180,7 +180,8 @@ const markAllAsRead = async () => {
 };
 
   const openProfile = () => {
-    router.push('/pages/profile');
+    const userId = localStorage.getItem('userId')
+    router.push(`/pages/profile/${userId}`);
   };
 
   const openCabinet = () => {
@@ -199,9 +200,10 @@ const markAllAsRead = async () => {
     alert(id);
   };
   return (
+  <div style = {{backgroundColor: '#f9f9f9'}}>
     <div style={{
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      maxWidth: 1200,
+      maxWidth: '90%',
       margin: '0 auto',
       padding: 20,
       color: '#333',
@@ -417,6 +419,7 @@ const markAllAsRead = async () => {
           borderRadius: 10,
           padding: 20,
           marginBottom: 30,
+          maxWidth: '50%',
           boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
         }}>
           <h2 style={{ 
@@ -472,7 +475,7 @@ const markAllAsRead = async () => {
               </select>
             </div>
             
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 2 }}>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as any)}
@@ -651,6 +654,7 @@ const markAllAsRead = async () => {
         © {new Date().getFullYear()} Паша лох. Все права защищены.
       </footer>
     </div>
+</div>
   );
 };
 
