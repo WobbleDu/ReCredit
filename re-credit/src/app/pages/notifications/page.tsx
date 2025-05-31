@@ -1,50 +1,95 @@
 'use client'
 
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 interface Notification {
-  id: number;
-  message: string;
-  read: boolean;
-  timestamp: Date;
+  id_notifications: number;
+  user_id: number;
+  text: string;
+  flag: boolean;
+  datetime: string;
 }
 
 const NotificationsPage: React.FC = () => {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
 
   // Загрузка данных
   useEffect(() => {
-    // Моковые уведомления
-    const mockNotifications: Notification[] = [
-      { id: 1, message: 'Ваша заявка на кредит одобрена', read: false, timestamp: new Date(Date.now() - 3600000) },
-      { id: 2, message: 'Новое предложение соответствует вашим критериям', read: false, timestamp: new Date(Date.now() - 86400000) },
-      { id: 3, message: 'Ваш депозит был успешно зачислен', read: true, timestamp: new Date(Date.now() - 172800000) },
-      { id: 4, message: 'Изменение условий по вашему кредиту', read: false, timestamp: new Date(Date.now() - 259200000) },
-      { id: 5, message: 'Проверьте новые инвестиционные предложения', read: true, timestamp: new Date(Date.now() - 345600000) },
-      { id: 6, message: 'Ваш профиль успешно верифицирован', read: true, timestamp: new Date(Date.now() - 432000000) },
-    ];
+    const fetchNotifications = async () => {
+      try {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
 
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.read).length);
+        const response = await fetch(`http://localhost:3001/user/${userId}/notifications`);
+        if (!response.ok) {
+          throw new Error('Не удалось загрузить уведомления');
+        }
+        const data = await response.json();
+        setNotifications(data);
+        setUnreadCount(data.filter((n: Notification) => !n.flag).length);
+      } catch (err) {
+        console.error('Ошибка загрузки уведомлений:', err);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
-  const markAsRead = (id: number) => {
-    const updatedNotifications = notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    );
-    setNotifications(updatedNotifications);
-    setUnreadCount(updatedNotifications.filter(n => !n.read).length);
+  const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
+    try {
+      const response = await fetch(`http://localhost:3001/notifications/${notificationId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ flag: isRead }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Не удалось обновить уведомление');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Ошибка при обновлении уведомления:', error);
+      throw error;
+    }
   };
 
-  const markAllAsRead = () => {
-    const updatedNotifications = notifications.map(n => ({ ...n, read: true }));
-    setNotifications(updatedNotifications);
-    setUnreadCount(0);
+  const markAsRead = async (id: number) => {
+    try {
+      await updateNotificationOnServer(id, true);
+      setNotifications(notifications.map(n => 
+        n.id_notifications === id ? { ...n, flag: true } : n
+      ));
+      setUnreadCount(prev => prev - 1);
+    } catch (error) {
+      console.error('Ошибка при пометке уведомления как прочитанного:', error);
+    }
   };
 
-  const formatDate = (date: Date) => {
+  const markAllAsRead = async () => {
+    try {
+      const unreadIds = notifications
+        .filter(n => !n.flag)
+        .map(n => n.id_notifications);
+      
+      await Promise.all(
+        unreadIds.map(id => updateNotificationOnServer(id, true))
+      );
+      
+      setNotifications(notifications.map(n => ({ ...n, flag: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Ошибка при пометке всех уведомлений как прочитанных:', error);
+    }
+  };
+
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     return date.toLocaleDateString('ru-RU', { 
       day: 'numeric', 
       month: 'short', 
@@ -54,15 +99,15 @@ const NotificationsPage: React.FC = () => {
   };
 
   const openProfile = () => {
-    alert('Переход в профиль пользователя');
+    router.push('/pages/profile');
   };
 
   const openCabinet = () => {
-    alert('Переход в личный кабинет');
+    router.push('/pages/lk');
   };
 
   const goBack = () => {
-    alert('Возврат на предыдущую страницу');
+    router.back();
   };
 
   return (
@@ -226,39 +271,39 @@ const NotificationsPage: React.FC = () => {
           ) : (
             notifications.map(notification => (
               <div 
-                key={notification.id}
-                onClick={() => markAsRead(notification.id)}
+                key={notification.id_notifications}
+                onClick={() => markAsRead(notification.id_notifications)}
                 style={{
                   padding: '15px 20px',
                   borderBottom: '1px solid #e1e1e1',
                   cursor: 'pointer',
-                  backgroundColor: notification.read ? 'white' : '#f8f9fa',
+                  backgroundColor: notification.flag ? 'white' : '#f8f9fa',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   transition: 'background-color 0.2s',
                   ':hover': {
-                    backgroundColor: notification.read ? '#f5f5f5' : '#f1f3f5'
+                    backgroundColor: notification.flag ? '#f5f5f5' : '#f1f3f5'
                   }
                 } as React.CSSProperties}
               >
                 <div>
                   <div style={{ 
-                    fontWeight: notification.read ? 'normal' : 'bold',
+                    fontWeight: notification.flag ? 'normal' : 'bold',
                     marginBottom: 5,
                     color: '#2c3e50'
                   }}>
-                    {notification.message}
+                    {notification.text}
                   </div>
                   <div style={{ 
                     fontSize: 12,
                     color: '#7f8c8d'
                   }}>
-                    {formatDate(notification.timestamp)}
+                    {formatDate(notification.datetime)}
                   </div>
                 </div>
                 
-                {!notification.read && (
+                {!notification.flag && (
                   <div style={{
                     width: 10,
                     height: 10,

@@ -54,10 +54,10 @@ const AccountPage: React.FC = () => {
   }, []);
 
    // Функции навигации
-  const navigateTo = () => router.push('/profile');
-  const navigateToMainOffers = () => router.push('/main_offers');
-  const navigateToNotifications = () => router.push('/notifications');
-  const navigateToCreateOffers = () => router.push('/create_offers');
+  const navigateToProfile = () => router.push('/pages/profile');
+  const navigateToMain = () => router.push('/pages');
+  const navigateToNotifications = () => router.push('/pages/notifications');
+  const navigateToCreateOffers = () => router.push('/pages/create_offers');
 
   if (loading) {
     return (
@@ -133,7 +133,7 @@ const AccountPage: React.FC = () => {
           </h2>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
-              onClick={() => navigateTo('profile')}
+              onClick={() => navigateToProfile()}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#f3f4f6',
@@ -146,7 +146,7 @@ const AccountPage: React.FC = () => {
               Профиль
             </button>
             <button
-              onClick={() => navigateTo('main_offers')}
+              onClick={() => navigateToMain()}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#f3f4f6',
@@ -156,10 +156,10 @@ const AccountPage: React.FC = () => {
                 cursor: 'pointer'
               }}
             >
-              Войти
+              Главное меню
             </button>
             <button
-              onClick={() => navigateTo('notifications')}
+              onClick={() => navigateToNotifications()}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#f3f4f6',
@@ -172,7 +172,7 @@ const AccountPage: React.FC = () => {
               Уведомления
             </button>
             <button
-              onClick={() => navigateTo('create_offers')}
+              onClick={() => navigateToCreateOffers()}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#3b82f6',

@@ -137,7 +137,21 @@ app.put('/users/:id', (req, res) => {
 });
 }
 {//NOTIFICATIONS
-const notification_model = require('./src/app/api/notification/notification_model')
+  const notification_model = require('./src/app/api/notification/notification_model')
+  app.put('/notifications/:id', (req, res) => {
+
+  const { flag } = req.body;
+
+  notification_model.updateNotification(req.params.id, flag)
+    .then(updatedNotification => {
+      res.status(200).json(updatedNotification);
+      console.log('Notification updated');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Failed to update notification' });
+    });
+});
 app.get('/notifications', (req, res) => {
   notification_model.getNotifications()
   .then(response => {

@@ -28,6 +28,8 @@ interface Offer {
   DateEnd: string;
   Owner_ID?: number;
   Guest_ID?: number;
+  owner_firstname?: string;
+  owner_lastname?: string;
 }
 
 interface LendOffer extends Offer {
@@ -77,29 +79,30 @@ const ProfilePage: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const userId = 1;
+        const userId = localStorage.getItem('userId');
+        if (!userId) throw new Error('Пользователь не авторизован');
         
         // Загрузка данных пользователя
         const userResponse = await fetch(`http://localhost:3001/users/${userId}`);
-        if (!userResponse.ok) {
-          throw new Error('Не удалось загрузить данные пользователя');
-        }
+        if (!userResponse.ok) throw new Error('Не удалось загрузить данные пользователя');
         const userData = await userResponse.json();
         setUserData(userData);
 
-        // Загрузка предложений пользователя
-        const offersResponse = await fetch(`http://localhost:3001/offers/${userId}`);
-        if (!offersResponse.ok) {
-          throw new Error('Не удалось загрузить предложения пользователя');
-        }
+        // Загрузка всех предложений с информацией о владельцах
+        const offersResponse = await fetch(`http://localhost:3001/offers`);
+        if (!offersResponse.ok) throw new Error('Не удалось загрузить предложения');
+        
         const allOffers = await offersResponse.json();
+        const numericUserId = Number(userId);
 
-        // Проверяем, что allOffers - массив, если нет - преобразуем или используем пустой массив
-        const offersArray = Array.isArray(allOffers) ? allOffers : [];
+        // Фильтрация предложений
+        const borrows = allOffers.filter((offer: Offer) => 
+          offer.Guest_ID === numericUserId
+        );
 
-        // Разделяем предложения на займы и инвестиции
-        const borrows = offersArray.filter((offer: Offer) => offer.Owner_ID == userId);
-        const lends = offersArray.filter((offer: Offer) => offer.Guest_ID == userId);
+        const lends = allOffers.filter((offer: Offer) => 
+          offer.Owner_ID === numericUserId
+        );
 
         setBorrowOffers(borrows);
         setLendOffers(lends);
@@ -173,6 +176,7 @@ const ProfilePage: React.FC = () => {
             <p><strong>Дата рождения:</strong> {userData?.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</p>
             <p><strong>Страна:</strong> {userData?.country || 'не указана'}</p>
             <p><strong>Доход:</strong> {(userData?.income)} ₽</p>
+            <p><strong>Кредитный рейтинг:</strong> {userData?.dti ?? 0}/100</p>
           </div>
         </div>
       </section>
@@ -186,7 +190,7 @@ const ProfilePage: React.FC = () => {
             }}
             onClick={() => setActiveTab('borrow')}
           >
-            Ищет деньги ({borrowOffers.length})
+            Мои займы ({borrowOffers.length})
           </button>
           <button
             style={{
@@ -195,7 +199,7 @@ const ProfilePage: React.FC = () => {
             }}
             onClick={() => setActiveTab('lend')}
           >
-            Может дать деньги ({lendOffers.length})
+            Мои инвестиции ({lendOffers.length})
           </button>
         </div>
 
@@ -219,6 +223,7 @@ const ProfilePage: React.FC = () => {
                     <p><strong>Ставка:</strong> {offer.InterestRate || '0'}%</p>
                     <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
                     <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'не указана'}</p>
+                    <p><strong>Инвестор:</strong> {offer.owner_firstname ? `${offer.owner_firstname} ${offer.owner_lastname}` : 'не указан'}</p>
                   </div>
                   <button 
                     style={styles.detailsButton}
@@ -229,7 +234,7 @@ const ProfilePage: React.FC = () => {
                 </div>
               ))
             ) : (
-              <p style={styles.noOffers}>Нет активных запросов на займ</p>
+              <p style={styles.noOffers}>Нет активных займов</p>
             )
           ) : (
             lendOffers.length > 0 ? (
@@ -250,7 +255,7 @@ const ProfilePage: React.FC = () => {
                     <p><strong>Ставка:</strong> {offer.InterestRate || '0'}%</p>
                     <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
                     <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'не указана'}</p>
-                    <p><strong>Инвестировано:</strong> {(offer.funded ?? 0).toLocaleString('ru-RU')} ₽</p>
+                    <p><strong>Заемщик:</strong> {offer.Guest_ID ? `ID: ${offer.Guest_ID}` : 'не указан'}</p>
                   </div>
                   <button 
                     style={styles.detailsButton}
@@ -261,7 +266,7 @@ const ProfilePage: React.FC = () => {
                 </div>
               ))
             ) : (
-              <p style={styles.noOffers}>Нет активных предложений инвестиций</p>
+              <p style={styles.noOffers}>Нет активных инвестиций</p>
             )
           )}
         </div>
@@ -270,7 +275,7 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-// Стили компонента (остаются без изменений)
+// Стили компонента остаются без изменений
 const styles = {
   container: {
     fontFamily: '"Segoe UI", Roboto, sans-serif',
@@ -364,14 +369,12 @@ const styles = {
   },
   tabs: {
     display: 'flex',
-    borderBottom: '1px solid #e5e7eb' // можно оставить сокращённую запись, так как нет конфликтов
+    borderBottom: '1px solid #e5e7eb'
   },
-  
   tabButton: {
     flex: 1,
     padding: '15px',
     backgroundColor: 'transparent',
-    // Заменяем border: 'none' на явное указание всех границ
     borderTop: 'none',
     borderRight: 'none',
     borderLeft: 'none',
@@ -382,12 +385,9 @@ const styles = {
     color: '#6b7280',
     transition: 'all 0.3s'
   } as React.CSSProperties,
-  
   activeTab: {
     color: '#4f46e5',
-    // Явно указываем только нижнюю границу
     borderBottom: '2px solid #4f46e5',
-    // Остальные границы остаются без изменений
     borderTop: 'none',
     borderRight: 'none',
     borderLeft: 'none'

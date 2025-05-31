@@ -17,7 +17,7 @@ interface UserData {
 }
 
 interface Offer {
-  id: number;
+  id_offer: number;
   type: string;
   creditsum: number;
   interestrate: number;
@@ -26,7 +26,7 @@ interface Offer {
 }
 
 interface Notification {
-  id_notification: number;
+  id_notifications: number;
   user_id: number;
   text: string;
   flag: boolean;
@@ -112,17 +112,61 @@ const IndexPage: React.FC = () => {
   setFilteredOffers(result);
 }, [searchTerm, sortBy, sortOrder, offers, showAllOffers]);
 
-  const markAsRead = (id: number) => {
+const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
+  try {
+    const response = await fetch(`http://localhost:3001/notifications/${notificationId}`, {
+      method: 'PUT', // или 'PUT' в зависимости от вашего API
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ flag: isRead }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Не удалось обновить уведомление');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Ошибка при обновлении уведомления:', error);
+    throw error;
+  }
+};
+  const markAsRead = async (id: number) => {
+  //alert(id);
+    try {
+    // Обновляем на сервере
+    await updateNotificationOnServer(id, true);
+    
+    // Обновляем локальное состояние
     setNotifications(notifications.map(n => 
-      n.id_notification === id ? { ...n, flag: true } : n
+      n.id_notifications === id ? { ...n, flag: true } : n
     ));
     setUnreadCount(prev => prev - 1);
-  };
+  } catch (error) {
+    console.error('Ошибка при пометке уведомления как прочитанного:', error);
+  }
+};
 
-  const markAllAsRead = () => {
+const markAllAsRead = async () => {
+  try {
+    // Получаем ID всех непрочитанных уведомлений
+    const unreadIds = notifications
+      .filter(n => !n.flag)
+      .map(n => n.id_notifications);
+    
+    // Обновляем все на сервере
+    await Promise.all(
+      unreadIds.map(id => updateNotificationOnServer(id, true))
+    );
+    
+    // Обновляем локальное состояние
     setNotifications(notifications.map(n => ({ ...n, flag: true })));
     setUnreadCount(0);
-  };
+  } catch (error) {
+    console.error('Ошибка при пометке всех уведомлений как прочитанных:', error);
+  }
+};
 
   const formatDate = (dateInput: string | Date) => {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -136,17 +180,14 @@ const IndexPage: React.FC = () => {
 };
 
   const openProfile = () => {
-    alert('Переход в профиль пользователя');
     router.push('/pages/profile');
   };
 
   const openCabinet = () => {
-    alert('Переход в личный кабинет');
     router.push('/pages/lk')
   };
 
   const openAllNotifications = () => {
-    alert('Переход к списку всех уведомлений');
     router.push('/pages/notifications')
   };
 
@@ -154,6 +195,9 @@ const IndexPage: React.FC = () => {
     setShowAllOffers(!showAllOffers);
   };
 
+  const showOffer = (id:number) =>{
+    alert(id);
+  };
   return (
     <div style={{
       fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
@@ -260,10 +304,10 @@ const IndexPage: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    {notifications.map((notification,index) => (
+                    {notifications.map((notification) => (
                       <div 
-                        key={index}
-                        onClick={() => markAsRead(notification.user_id)}
+                        key={notification.id_notifications}
+                        onClick={() => markAsRead(notification.id_notifications)}
                         style={{
                           padding: 15,
                           borderBottom: '1px solid #e1e1e1',
@@ -568,7 +612,9 @@ const IndexPage: React.FC = () => {
                   </div>
                 </div>
                 
-                <button style={{
+                <button
+                onClick={() => showOffer(offer.id_offer)}
+                 style={{
                   width: '100%',
                   marginTop: 15,
                   padding: '12px 0',
@@ -584,6 +630,7 @@ const IndexPage: React.FC = () => {
                     backgroundColor: '#2980b9'
                   }
                 } as React.CSSProperties}>
+                   
                   Подробнее
                 </button>
               </div>
@@ -601,7 +648,7 @@ const IndexPage: React.FC = () => {
         fontSize: 14,
         textAlign: 'center'
       }}>
-        © {new Date().getFullYear()} Брокерская платформа. Все права защищены.
+        © {new Date().getFullYear()} Паша лох. Все права защищены.
       </footer>
     </div>
   );
