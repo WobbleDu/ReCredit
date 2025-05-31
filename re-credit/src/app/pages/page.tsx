@@ -419,8 +419,8 @@ const markAllAsRead = async () => {
           borderRadius: 10,
           padding: 20,
           marginBottom: 30,
-          maxWidth: '50%',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          maxWidth: '100%',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
         }}>
           <h2 style={{ 
             marginTop: 0,
@@ -434,9 +434,10 @@ const markAllAsRead = async () => {
           <div style={{
             display: 'flex',
             gap: 15,
-            marginBottom: 20
+            marginBottom: 20,
+            justifyContent: 'space-between'
           }}>
-            <div style={{ flex: 3 }}>
+            <div style={{ width: '550px' }}>
               <input
                 type="text"
                 placeholder="Поиск по названию..."
@@ -454,46 +455,51 @@ const markAllAsRead = async () => {
                 }}
               />
             </div>
-            
-            <div style={{ flex: 2 }}>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'interestrate' | 'creditsum')}
-                style={{
-                  width: '100%',
-                  padding: '10px 15px',
-                  border: '1px solid #e1e1e1',
-                  borderRadius: 8,
-                  fontSize: 16,
-                  outline: 'none',
-                  backgroundColor: 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="interestrate">По процентной ставке</option>
-                <option value="creditsum">По сумме</option>
-              </select>
+
+            <div style={{ display: 'flex', gap: 15 }}>
+
+              <div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'interestrate' | 'creditsum')}
+                  style={{
+                    width: '100%',
+                    padding: '10px 15px',
+                    border: '1px solid #e1e1e1',
+                    borderRadius: 8,
+                    fontSize: 16,
+                    outline: 'none',
+                    backgroundColor: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="interestrate">По процентной ставке</option>
+                  <option value="creditsum">По сумме</option>
+                </select>
+              </div>
+              
+              <div>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as any)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 15px',
+                    border: '1px solid #e1e1e1',
+                    borderRadius: 8,
+                    fontSize: 16,
+                    outline: 'none',
+                    backgroundColor: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="asc">По возрастанию</option>
+                  <option value="desc">По убыванию</option>
+                </select>
+              </div>
+
             </div>
             
-            <div style={{ flex: 2 }}>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as any)}
-                style={{
-                  width: '100%',
-                  padding: '10px 15px',
-                  border: '1px solid #e1e1e1',
-                  borderRadius: 8,
-                  fontSize: 16,
-                  outline: 'none',
-                  backgroundColor: 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="asc">По возрастанию</option>
-                <option value="desc">По убыванию</option>
-              </select>
-            </div>
           </div>
         </section>
 
