@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 interface User {
-  id: string;
+  id_user: string;
   firstname: string;
   lastname: string;
   birthdate: string;
@@ -54,7 +54,7 @@ const AccountPage: React.FC = () => {
   }, []);
 
    // Функции навигации
-  const navigateToProfile = () => router.push(`/pages/profile/${localStorage.getItem('userId')}`);
+  const navigateToProfile = () => router.push(`/pages/profile/${user?.id_user}`);
   const navigateToMain = () => router.push('/pages');
   const navigateToNotifications = () => router.push('/pages/notifications');
   const navigateToCreateOffers = () => router.push('/pages/create_offers');
