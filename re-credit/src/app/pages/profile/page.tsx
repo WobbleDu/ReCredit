@@ -162,15 +162,17 @@ const ProfilePage: React.FC = () => {
 
       <section style={styles.profileSection}>
         <div style={styles.avatarPlaceholder}>
-          {userData.firstname.charAt(0)}{userData.lastname.charAt(0)}
+          {userData?.firstname?.charAt(0)}{userData?.lastname?.charAt(0)}
         </div>
         <div style={styles.profileInfo}>
-          <h2 style={styles.userName}>{userData.firstname} {userData.lastname}</h2>
+          <h2 style={styles.userName}>
+            {userData?.firstname || 'Имя'} {userData?.lastname || 'Фамилия'}
+          </h2>
           <div style={styles.userDetails}>
-            <p><strong>Телефон:</strong> {userData.phonenumber}</p>
-            <p><strong>Дата рождения:</strong> {formatBirthDate(userData.birthdate)}</p>
-            <p><strong>Страна:</strong> {userData.Country}</p>
-            <p><strong>Доход:</strong> {userData.Income.toLocaleString('ru-RU')} ₽</p>
+            <p><strong>Телефон:</strong> {userData?.phonenumber || 'не указан'}</p>
+            <p><strong>Дата рождения:</strong> {userData?.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</p>
+            <p><strong>Страна:</strong> {userData?.Country || 'не указана'}</p>
+            <p><strong>Доход:</strong> {(userData?.Income ?? 0).toLocaleString('ru-RU')} ₽</p>
           </div>
         </div>
       </section>
@@ -203,7 +205,7 @@ const ProfilePage: React.FC = () => {
               borrowOffers.map((offer) => (
                 <div key={offer.ID_Offer} style={styles.offerCard}>
                   <div style={styles.offerHeader}>
-                    <h3 style={styles.offerTitle}>{offer.Type}</h3>
+                    <h3 style={styles.offerTitle}>{offer.Type || 'Тип не указан'}</h3>
                     <span style={{
                       ...styles.statusBadge,
                       ...(offer.State === 1 ? styles.activeBadge : 
@@ -213,10 +215,10 @@ const ProfilePage: React.FC = () => {
                     </span>
                   </div>
                   <div style={styles.offerDetails}>
-                    <p><strong>Сумма:</strong> {offer.CreditSum.toLocaleString('ru-RU')} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.InterestRate}%</p>
+                    <p><strong>Сумма:</strong> {(offer.CreditSum ?? 0).toLocaleString('ru-RU')} ₽</p>
+                    <p><strong>Ставка:</strong> {offer.InterestRate || '0'}%</p>
                     <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
-                    <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'Не указана'}</p>
+                    <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'не указана'}</p>
                   </div>
                   <button 
                     style={styles.detailsButton}
@@ -244,11 +246,11 @@ const ProfilePage: React.FC = () => {
                     </span>
                   </div>
                   <div style={styles.offerDetails}>
-                    <p><strong>Сумма:</strong> {offer.CreditSum.toLocaleString('ru-RU')} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.InterestRate}%</p>
+                    <p><strong>Сумма:</strong> {(offer.CreditSum ?? 0).toLocaleString('ru-RU')} ₽</p>
+                    <p><strong>Ставка:</strong> {offer.InterestRate || '0'}%</p>
                     <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
-                    <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'Не указана'}</p>
-                    <p><strong>Инвестировано:</strong> {offer.funded?.toLocaleString('ru-RU') || '0'} ₽</p>
+                    <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'не указана'}</p>
+                    <p><strong>Инвестировано:</strong> {(offer.funded ?? 0).toLocaleString('ru-RU')} ₽</p>
                   </div>
                   <button 
                     style={styles.detailsButton}
@@ -362,22 +364,33 @@ const styles = {
   },
   tabs: {
     display: 'flex',
-    borderBottom: '1px solid #e5e7eb'
+    borderBottom: '1px solid #e5e7eb' // можно оставить сокращённую запись, так как нет конфликтов
   },
+  
   tabButton: {
     flex: 1,
     padding: '15px',
     backgroundColor: 'transparent',
-    border: 'none',
+    // Заменяем border: 'none' на явное указание всех границ
+    borderTop: 'none',
+    borderRight: 'none',
+    borderLeft: 'none',
+    borderBottom: 'none',
     cursor: 'pointer',
     fontSize: '16px',
     fontWeight: 500,
     color: '#6b7280',
     transition: 'all 0.3s'
   } as React.CSSProperties,
+  
   activeTab: {
     color: '#4f46e5',
-    borderBottom: '2px solid #4f46e5'
+    // Явно указываем только нижнюю границу
+    borderBottom: '2px solid #4f46e5',
+    // Остальные границы остаются без изменений
+    borderTop: 'none',
+    borderRight: 'none',
+    borderLeft: 'none'
   } as React.CSSProperties,
   offersList: {
     padding: '20px'

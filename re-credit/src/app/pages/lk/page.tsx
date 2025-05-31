@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 interface User {
@@ -17,6 +18,7 @@ interface User {
 }
 
 const AccountPage: React.FC = () => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,10 +53,11 @@ const AccountPage: React.FC = () => {
     fetchUserData();
   }, []);
 
-  const navigateTo = (page: string) => {
-    console.log(`Переход на страницу ${page}`);
-    // В реальном приложении: window.location.href = `/${page}`;
-  };
+   // Функции навигации
+  const navigateTo = () => router.push('/profile');
+  const navigateToMainOffers = () => router.push('/main_offers');
+  const navigateToNotifications = () => router.push('/notifications');
+  const navigateToCreateOffers = () => router.push('/create_offers');
 
   if (loading) {
     return (
@@ -362,7 +365,7 @@ const AccountPage: React.FC = () => {
                     color: '#111827',
                     fontWeight: '500'
                   }}>
-                    {(user.dti)}
+                    {(user.dti * 1).toFixed(2)}
                   </p>
                 </div>
               )}
