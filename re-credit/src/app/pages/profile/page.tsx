@@ -19,17 +19,17 @@ interface UserData {
 }
 
 interface Offer {
-  ID_Offer: number;
-  Type: string;
-  CreditSum: number;
-  InterestRate: number;
-  State: number;
-  DateStart: string;
-  DateEnd: string;
-  Owner_ID?: number;
-  Guest_ID?: number;
-  owner_firstname?: string;
-  owner_lastname?: string;
+  id_offer: number;
+  type: string;
+  creditsum: number;
+  interestrate: number;
+  state: number;
+  datestart: string | null;
+  dateend: string | null;
+  owner_id: number | null;
+  guest_id: number | null;
+  owner_firstname: string | null;
+  owner_lastname: string | null;
 }
 
 interface LendOffer extends Offer {
@@ -51,8 +51,13 @@ const ProfilePage: React.FC = () => {
   };
 
   const formatBirthDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU');
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Неверная дата';
+      return date.toLocaleDateString('ru-RU');
+    } catch {
+      return 'Неверная дата';
+    }
   };
 
   const getStatus = (state: number) => {
@@ -64,15 +69,22 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const calculateTerm = (start: string, end: string): string => {
+  const calculateTerm = (start: string | null, end: string | null): string => {
     if (!start || !end) return 'Не указан';
     
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 
-      + (endDate.getMonth() - startDate.getMonth());
-    
-    return `${months} месяцев`;
+    try {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      if (isNaN(startDate.getTime()) return 'Неверная дата начала';
+      if (isNaN(endDate.getTime())) return 'Неверная дата окончания';
+      
+      const months = (endDate.getFullYear() - startDate.getFullYear()) * 12 
+        + (endDate.getMonth() - startDate.getMonth());
+      
+      return `${months} месяцев`;
+    } catch {
+      return 'Ошибка расчета';
+    }
   };
 
   useEffect(() => {
@@ -84,24 +96,27 @@ const ProfilePage: React.FC = () => {
         
         // Загрузка данных пользователя
         const userResponse = await fetch(`http://localhost:3001/users/${userId}`);
-        if (!userResponse.ok) throw new Error('Не удалось загрузить данные пользователя');
+        if (!userResponse.ok) {
+          throw new Error(`Ошибка пользователя: ${userResponse.status}`);
+        }
         const userData = await userResponse.json();
         setUserData(userData);
 
-        // Загрузка всех предложений с информацией о владельцах
-        const offersResponse = await fetch(`http://localhost:3001/offers`);
-        if (!offersResponse.ok) throw new Error('Не удалось загрузить предложения');
-        
+        // Загрузка всех предложений
+        const offersResponse = await fetch('http://localhost:3001/offers');
+        if (!offersResponse.ok) {
+          throw new Error(`Ошибка предложений: ${offersResponse.status}`);
+        }
         const allOffers = await offersResponse.json();
-        const numericUserId = Number(userId);
 
-        // Фильтрация предложений
+        const numericUserId = parseInt(userId, 10);
+
         const borrows = allOffers.filter((offer: Offer) => 
-          offer.Guest_ID === numericUserId
+          offer.guest_id != null && Number(offer.guest_id) === numericUserId
         );
 
         const lends = allOffers.filter((offer: Offer) => 
-          offer.Owner_ID === numericUserId
+          offer.owner_id != null && Number(offer.owner_id) === numericUserId
         );
 
         setBorrowOffers(borrows);
@@ -119,7 +134,7 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={styles.container}>
+      <div className="container">
         <div style={{ textAlign: 'center', padding: '40px' }}>Загрузка данных...</div>
       </div>
     );
@@ -127,7 +142,7 @@ const ProfilePage: React.FC = () => {
 
   if (error) {
     return (
-      <div style={styles.container}>
+      <div className="container">
         <div style={{ color: 'red', textAlign: 'center', padding: '40px' }}>{error}</div>
       </div>
     );
@@ -135,27 +150,27 @@ const ProfilePage: React.FC = () => {
 
   if (!userData) {
     return (
-      <div style={styles.container}>
+      <div className="container">
         <div style={{ textAlign: 'center', padding: '40px' }}>Пользователь не найден</div>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <div style={styles.headerContent}>
-          <h1 style={styles.title}>Профиль пользователя</h1>
-          <nav style={styles.nav}>
+    <div className="container">
+      <header className="header">
+        <div className="headerContent">
+          <h1 className="title">Профиль пользователя</h1>
+          <nav className="nav">
             <button 
               onClick={() => router.push('/account')}
-              style={styles.navButton}
+              className="navButton"
             >
               Личный кабинет
             </button>
             <button 
               onClick={() => router.push('/')}
-              style={styles.navButton}
+              className="navButton"
             >
               На главную
             </button>
@@ -163,309 +178,326 @@ const ProfilePage: React.FC = () => {
         </div>
       </header>
 
-      <section style={styles.profileSection}>
-        <div style={styles.avatarPlaceholder}>
-          {userData?.firstname?.charAt(0)}{userData?.lastname?.charAt(0)}
+      <section className="profileSection">
+        <div className="avatarPlaceholder">
+          {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}
         </div>
-        <div style={styles.profileInfo}>
-          <h2 style={styles.userName}>
-            {userData?.firstname || 'Имя'} {userData?.lastname || 'Фамилия'}
+        <div className="profileInfo">
+          <h2 className="userName">
+            {userData.firstname || 'Имя'} {userData.lastname || 'Фамилия'}
           </h2>
-          <div style={styles.userDetails}>
-            <p><strong>Телефон:</strong> {userData?.phonenumber || 'не указан'}</p>
-            <p><strong>Дата рождения:</strong> {userData?.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</p>
-            <p><strong>Страна:</strong> {userData?.country || 'не указана'}</p>
-            <p><strong>Доход:</strong> {(userData?.income)} ₽</p>
-            <p><strong>Кредитный рейтинг:</strong> {userData?.dti ?? 0}/100</p>
+          <div className="userDetails">
+            <p><strong>Телефон:</strong> {userData.phonenumber || 'не указан'}</p>
+            <p><strong>Дата рождения:</strong> {userData.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</p>
+            <p><strong>Страна:</strong> {userData.country || 'не указана'}</p>
+            <p><strong>Доход:</strong> {userData.income?.toLocaleString('ru-RU') || '0'} ₽</p>
+            <p><strong>Кредитный рейтинг:</strong> {userData.dti ?? 0}/100</p>
           </div>
         </div>
       </section>
 
-      <section style={styles.tabsSection}>
-        <div style={styles.tabs}>
+      <section className="tabsSection">
+        <div className="tabs">
           <button
-            style={{
-              ...styles.tabButton,
-              ...(activeTab === 'borrow' ? styles.activeTab : {})
-            }}
+            className={`tabButton ${activeTab === 'borrow' ? 'activeTab' : ''}`}
             onClick={() => setActiveTab('borrow')}
           >
             Мои займы ({borrowOffers.length})
           </button>
           <button
-            style={{
-              ...styles.tabButton,
-              ...(activeTab === 'lend' ? styles.activeTab : {})
-            }}
+            className={`tabButton ${activeTab === 'lend' ? 'activeTab' : ''}`}
             onClick={() => setActiveTab('lend')}
           >
             Мои инвестиции ({lendOffers.length})
           </button>
         </div>
 
-        <div style={styles.offersList}>
+        <div className="offersList">
           {activeTab === 'borrow' ? (
             borrowOffers.length > 0 ? (
               borrowOffers.map((offer) => (
-                <div key={offer.ID_Offer} style={styles.offerCard}>
-                  <div style={styles.offerHeader}>
-                    <h3 style={styles.offerTitle}>{offer.Type || 'Тип не указан'}</h3>
-                    <span style={{
-                      ...styles.statusBadge,
-                      ...(offer.State === 1 ? styles.activeBadge : 
-                           offer.State === 2 ? styles.completedBadge : styles.pendingBadge)
-                    }}>
-                      {getStatus(offer.State)}
+                <div key={offer.id_offer} className="offerCard">
+                  <div className="offerHeader">
+                    <h3 className="offerTitle">{offer.type || 'Тип не указан'}</h3>
+                    <span className={`statusBadge ${
+                      offer.state === 1 ? 'activeBadge' : 
+                      offer.state === 2 ? 'completedBadge' : 'pendingBadge'
+                    }`}>
+                      {getStatus(offer.state)}
                     </span>
                   </div>
-                  <div style={styles.offerDetails}>
-                    <p><strong>Сумма:</strong> {(offer.CreditSum ?? 0).toLocaleString('ru-RU')} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.InterestRate || '0'}%</p>
-                    <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
-                    <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'не указана'}</p>
+                  <div className="offerDetails">
+                    <p><strong>Сумма:</strong> {(offer.creditsum ?? 0).toLocaleString('ru-RU')} ₽</p>
+                    <p><strong>Ставка:</strong> {offer.interestrate || '0'}%</p>
+                    <p><strong>Срок:</strong> {calculateTerm(offer.datestart, offer.dateend)}</p>
+                    <p><strong>Дата начала:</strong> {offer.datestart ? formatBirthDate(offer.datestart) : 'не указана'}</p>
                     <p><strong>Инвестор:</strong> {offer.owner_firstname ? `${offer.owner_firstname} ${offer.owner_lastname}` : 'не указан'}</p>
                   </div>
                   <button 
-                    style={styles.detailsButton}
-                    onClick={() => handleOfferClick(offer.ID_Offer)}
+                    className="detailsButton"
+                    onClick={() => handleOfferClick(offer.id_offer)}
                   >
                     Подробнее
                   </button>
                 </div>
               ))
             ) : (
-              <p style={styles.noOffers}>Нет активных займов</p>
+              <p className="noOffers">Нет активных займов</p>
             )
           ) : (
             lendOffers.length > 0 ? (
               lendOffers.map((offer) => (
-                <div key={offer.ID_Offer} style={styles.offerCard}>
-                  <div style={styles.offerHeader}>
-                    <h3 style={styles.offerTitle}>{offer.Type}</h3>
-                    <span style={{
-                      ...styles.statusBadge,
-                      ...(offer.State === 1 ? styles.activeBadge : 
-                           offer.State === 2 ? styles.completedBadge : styles.pendingBadge)
-                    }}>
-                      {getStatus(offer.State)}
+                <div key={offer.id_offer} className="offerCard">
+                  <div className="offerHeader">
+                    <h3 className="offerTitle">{offer.type}</h3>
+                    <span className={`statusBadge ${
+                      offer.state === 1 ? 'activeBadge' : 
+                      offer.state === 2 ? 'completedBadge' : 'pendingBadge'
+                    }`}>
+                      {getStatus(offer.state)}
                     </span>
                   </div>
-                  <div style={styles.offerDetails}>
-                    <p><strong>Сумма:</strong> {(offer.CreditSum ?? 0).toLocaleString('ru-RU')} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.InterestRate || '0'}%</p>
-                    <p><strong>Срок:</strong> {calculateTerm(offer.DateStart, offer.DateEnd)}</p>
-                    <p><strong>Дата начала:</strong> {offer.DateStart ? formatBirthDate(offer.DateStart) : 'не указана'}</p>
-                    <p><strong>Заемщик:</strong> {offer.Guest_ID ? `ID: ${offer.Guest_ID}` : 'не указан'}</p>
+                  <div className="offerDetails">
+                    <p><strong>Сумма:</strong> {(offer.creditsum ?? 0).toLocaleString('ru-RU')} ₽</p>
+                    <p><strong>Ставка:</strong> {offer.interestrate || '0'}%</p>
+                    <p><strong>Срок:</strong> {calculateTerm(offer.datestart, offer.dateend)}</p>
+                    <p><strong>Дата начала:</strong> {offer.datestart ? formatBirthDate(offer.datestart) : 'не указана'}</p>
+                    <p><strong>Заемщик:</strong> {offer.guest_id ? `ID: ${offer.guest_id}` : 'не указан'}</p>
                   </div>
                   <button 
-                    style={styles.detailsButton}
-                    onClick={() => handleOfferClick(offer.ID_Offer)}
+                    className="detailsButton"
+                    onClick={() => handleOfferClick(offer.id_offer)}
                   >
                     Подробнее
                   </button>
                 </div>
               ))
             ) : (
-              <p style={styles.noOffers}>Нет активных инвестиций</p>
+              <p className="noOffers">Нет активных инвестиций</p>
             )
           )}
         </div>
       </section>
+
+      <style jsx>{`
+        .container {
+          font-family: 'Segoe UI', Roboto, sans-serif;
+          color: #333;
+          line-height: 1.6;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        
+        .header {
+          background-color: #4f46e5;
+          color: white;
+          padding: 20px 0;
+          margin-bottom: 30px;
+          border-radius: 8px;
+        }
+        
+        .headerContent {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 0 20px;
+        }
+        
+        .title {
+          margin: 0;
+          font-size: 24px;
+        }
+        
+        .nav {
+          display: flex;
+          gap: 10px;
+        }
+        
+        .navButton {
+          padding: 8px 16px;
+          background-color: transparent;
+          border: 1px solid white;
+          color: white;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        
+        .navButton:hover {
+          background-color: rgba(255,255,255,0.1);
+        }
+        
+        .profileSection {
+          display: flex;
+          align-items: center;
+          gap: 30px;
+          margin-bottom: 40px;
+          padding: 20px;
+          background-color: #f9fafb;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .avatarPlaceholder {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          background-color: #e5e7eb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 40px;
+          color: #9ca3af;
+          font-weight: bold;
+        }
+        
+        .profileInfo {
+          flex: 1;
+        }
+        
+        .userName {
+          margin: 0 0 10px 0;
+          font-size: 28px;
+          color: #111827;
+        }
+        
+        .userDetails {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 10px;
+        }
+        
+        .userDetails p {
+          margin: 5px 0;
+        }
+        
+        .userDetails strong {
+          color: #4b5563;
+        }
+        
+        .tabsSection {
+          background-color: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          overflow: hidden;
+        }
+        
+        .tabs {
+          display: flex;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .tabButton {
+          flex: 1;
+          padding: 15px;
+          background-color: transparent;
+          border: none;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 500;
+          color: #6b7280;
+          transition: all 0.3s;
+        }
+        
+        .activeTab {
+          color: #4f46e5;
+          border-bottom: 2px solid #4f46e5;
+        }
+        
+        .offersList {
+          padding: 20px;
+        }
+        
+        .offerCard {
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 15px;
+          transition: all 0.3s;
+        }
+        
+        .offerCard:hover {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .offerHeader {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+        }
+        
+        .offerTitle {
+          margin: 0;
+          font-size: 18px;
+          color: #111827;
+        }
+        
+        .statusBadge {
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+        
+        .activeBadge {
+          background-color: #d1fae5;
+          color: #065f46;
+        }
+        
+        .pendingBadge {
+          background-color: #fee2e2;
+          color: #b91c1c;
+        }
+        
+        .completedBadge {
+          background-color: #dbeafe;
+          color: #1e40af;
+        }
+        
+        .offerDetails {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 10px;
+          margin-bottom: 15px;
+        }
+        
+        .offerDetails p {
+          margin: 5px 0;
+        }
+        
+        .offerDetails strong {
+          color: #4b5563;
+        }
+        
+        .detailsButton {
+          width: 100%;
+          padding: 10px 0;
+          background-color: #3498db;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        
+        .detailsButton:hover {
+          background-color: #2980b9;
+        }
+        
+        .noOffers {
+          text-align: center;
+          color: #6b7280;
+          padding: 40px 0;
+        }
+      `}</style>
     </div>
   );
-};
-
-// Стили компонента остаются без изменений
-const styles = {
-  container: {
-    fontFamily: '"Segoe UI", Roboto, sans-serif',
-    color: '#333',
-    lineHeight: 1.6,
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '20px'
-  },
-  header: {
-    backgroundColor: '#4f46e5',
-    color: 'white',
-    padding: '20px 0',
-    marginBottom: '30px',
-    borderRadius: '8px'
-  },
-  headerContent: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    maxWidth: '1100px',
-    margin: '0 auto',
-    padding: '0 20px'
-  },
-  title: {
-    margin: 0,
-    fontSize: '24px'
-  },
-  nav: {
-    display: 'flex',
-    gap: '10px'
-  },
-  navButton: {
-    padding: '8px 16px',
-    backgroundColor: 'transparent',
-    border: '1px solid white',
-    color: 'white',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    transition: 'all 0.3s',
-    ':hover': {
-      backgroundColor: 'rgba(255,255,255,0.1)'
-    }
-  } as React.CSSProperties,
-  profileSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '30px',
-    marginBottom: '40px',
-    padding: '20px',
-    backgroundColor: '#f9fafb',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-  },
-  avatarPlaceholder: {
-    width: '120px',
-    height: '120px',
-    borderRadius: '50%',
-    backgroundColor: '#e5e7eb',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '40px',
-    color: '#9ca3af',
-    fontWeight: 'bold'
-  } as React.CSSProperties,
-  profileInfo: {
-    flex: 1
-  },
-  userName: {
-    margin: '0 0 10px 0',
-    fontSize: '28px',
-    color: '#111827'
-  },
-  userDetails: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '10px',
-    p: {
-      margin: '5px 0'
-    },
-    strong: {
-      color: '#4b5563'
-    }
-  } as React.CSSProperties,
-  tabsSection: {
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-    overflow: 'hidden'
-  },
-  tabs: {
-    display: 'flex',
-    borderBottom: '1px solid #e5e7eb'
-  },
-  tabButton: {
-    flex: 1,
-    padding: '15px',
-    backgroundColor: 'transparent',
-    borderTop: 'none',
-    borderRight: 'none',
-    borderLeft: 'none',
-    borderBottom: 'none',
-    cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: 500,
-    color: '#6b7280',
-    transition: 'all 0.3s'
-  } as React.CSSProperties,
-  activeTab: {
-    color: '#4f46e5',
-    borderBottom: '2px solid #4f46e5',
-    borderTop: 'none',
-    borderRight: 'none',
-    borderLeft: 'none'
-  } as React.CSSProperties,
-  offersList: {
-    padding: '20px'
-  },
-  offerCard: {
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '15px',
-    transition: 'all 0.3s',
-    ':hover': {
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-    }
-  } as React.CSSProperties,
-  offerHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '15px'
-  },
-  offerTitle: {
-    margin: 0,
-    fontSize: '18px',
-    color: '#111827'
-  },
-  statusBadge: {
-    padding: '4px 10px',
-    borderRadius: '12px',
-    fontSize: '12px',
-    fontWeight: 500
-  } as React.CSSProperties,
-  activeBadge: {
-    backgroundColor: '#d1fae5',
-    color: '#065f46'
-  } as React.CSSProperties,
-  pendingBadge: {
-    backgroundColor: '#fee2e2',
-    color: '#b91c1c'
-  } as React.CSSProperties,
-  completedBadge: {
-    backgroundColor: '#dbeafe',
-    color: '#1e40af'
-  } as React.CSSProperties,
-  offerDetails: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '10px',
-    marginBottom: '15px',
-    p: {
-      margin: '5px 0',
-      strong: {
-        color: '#4b5563'
-      }
-    }
-  } as React.CSSProperties,
-  detailsButton: {
-    width: '100%',
-    padding: '10px 0',
-    backgroundColor: '#3498db',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    ':hover': {
-      backgroundColor: '#2980b9'
-    }
-  } as React.CSSProperties,
-  noOffers: {
-    textAlign: 'center',
-    color: '#6b7280',
-    padding: '40px 0'
-  } as React.CSSProperties
 };
 
 export default ProfilePage;
