@@ -28,7 +28,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{margin: 0, padding: 0}}
       >
-        <div style={{minHeight: 'calc(100vh - 57px)'}}>
+        <div style={{minHeight: 'calc(100vh - 57px)', backgroundColor: 'white'}}>
           {children}
         </div>
 
@@ -38,7 +38,8 @@ export default function RootLayout({
           borderTop: '1px solid #e1e1e1',
           color: '#7f8c8d',
           fontSize: 14,
-          textAlign: 'center'
+          textAlign: 'center',
+          backgroundColor: 'white'
         }}>
           © {new Date().getFullYear()} Все права защищены.
         </footer>

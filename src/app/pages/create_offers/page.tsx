@@ -82,7 +82,7 @@ const CreateOfferPage: React.FC = () => {
       }
 
       // После успешного создания - переход в профиль
-      router.push('/pages/profile');
+      router.push(`/pages/profile/${userId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
       setLoading(false);
@@ -94,7 +94,8 @@ const CreateOfferPage: React.FC = () => {
       minHeight: 'calc(100vh - 57px)',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+       backgroundColor: 'white'
     }}>
       <div style={{
         maxWidth: '600px',

@@ -108,7 +108,6 @@ const AccountPage: React.FC = () => {
         maxWidth: '64rem',
         width: '100%',
         margin: '0 auto',
-        backgroundColor: 'white',
         borderRadius: '0.5rem',
         boxShadow: 'rgb(47 47 47 / 10%) 0px 1px 15px',
         padding: '2rem',
