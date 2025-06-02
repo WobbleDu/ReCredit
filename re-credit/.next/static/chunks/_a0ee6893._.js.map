@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///D:/%D0%9F%D0%90%D0%A8%D0%90/3%20%D0%BA%D1%83%D1%80%D1%81/%D0%9F%D0%9F%20%D0%9F%D0%9C%2001%20%D0%91%D1%80%D0%B5%D1%85%D0%BE%D0%B2/ReCredit/re-credit/src/app/page.tsx"],"sourcesContent":["    'use client'\r\n\r\nimport { useRouter } from 'next/navigation';\r\nimport React, { useEffect } from 'react';\r\n\r\nconst Index: React.FC = () => {\r\n  const router = useRouter();\r\n  \r\n  useEffect(() => {\r\n    router.push('http://localhost:3000/login');\r\n  }, [router]); // router добавлен в зависимости useEffect\r\n\r\n  return null;\r\n};\r\n\r\nexport default Index;"],"names":[],"mappings":";;;AAEA;AACA;;AAHI;;;AAKJ,MAAM,QAAkB;;IACtB,MAAM,SAAS,CAAA,GAAA,qIAAA,CAAA,YAAS,AAAD;IAEvB,CAAA,GAAA,6JAAA,CAAA,YAAS,AAAD;2BAAE;YACR,OAAO,IAAI,CAAC;QACd;0BAAG;QAAC;KAAO,GAAG,0CAA0C;IAExD,OAAO;AACT;GARM;;QACW,qIAAA,CAAA,YAAS;;;KADpB;uCAUS","debugId":null}},
-    {"offset": {"line": 45, "column": 0}, "map": {"version":3,"sources":["file:///D:/%D0%9F%D0%90%D0%A8%D0%90/3%20%D0%BA%D1%83%D1%80%D1%81/%D0%9F%D0%9F%20%D0%9F%D0%9C%2001%20%D0%91%D1%80%D0%B5%D1%85%D0%BE%D0%B2/ReCredit/re-credit/node_modules/next/navigation.js"],"sourcesContent":["module.exports = require('./dist/client/components/navigation')\n"],"names":[],"mappings":"AAAA,OAAO,OAAO","ignoreList":[0],"debugId":null}}]
-}
