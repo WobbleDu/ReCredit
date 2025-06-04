@@ -27,14 +27,13 @@ const AccountPage: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // 1. Получаем userId из localStorage
         const userId = localStorage.getItem('userId');
         
         if (!userId) {
           throw new Error('Пользователь не авторизован');
         }
 
-        // 2. Запрашиваем данные пользователя с сервера
+        // Запрашиваем данные пользователя с сервера
         const response = await fetch(`http://localhost:3001/users/${userId}`);
         
         if (!response.ok) {
@@ -52,13 +51,45 @@ const AccountPage: React.FC = () => {
 
     fetchUserData();
   }, []);
+const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    if (!confirm('Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить.')) {
+      return;
+    }
+//Удаление пользователя
+    try {
+      const response = await fetch(`http://localhost:3001/users/${user.id_user}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при удалении аккаунта');
+      }
+
+      localStorage.removeItem('userId');
+      router.push('/login');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка при удалении аккаунта');
+    }
+  };
 
    // Функции навигации
   const navigateToProfile = () => router.push(`/pages/profile/${user?.id_user}`);
   const navigateToMain = () => router.push('/pages');
   const navigateToNotifications = () => router.push('/pages/notifications');
   const navigateToCreateOffers = () => router.push('/pages/create_offers');
+  const navigateToChangeUser = () => router.push(`/pages/changeUser`);
 
+  const formatBirthDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Неверная дата';
+      return date.toLocaleDateString('ru-RU');
+    } catch {
+      return 'Неверная дата';
+    }
+  };
   if (loading) {
     return (
       <div style={{
@@ -108,6 +139,7 @@ const AccountPage: React.FC = () => {
         maxWidth: '64rem',
         width: '100%',
         margin: '0 auto',
+        backgroundColor: 'white',
         borderRadius: '0.5rem',
         boxShadow: 'rgb(47 47 47 / 10%) 0px 1px 15px',
         padding: '2rem',
@@ -250,7 +282,7 @@ const AccountPage: React.FC = () => {
                   color: '#111827',
                   fontWeight: '500'
                 }}>
-                  {user.birthdate}
+                  {formatBirthDate(user.birthdate)}
                 </p>
               </div>
               <div style={{ marginBottom: '1rem' }}>
@@ -270,6 +302,40 @@ const AccountPage: React.FC = () => {
                 </p>
               </div>
             </div>
+            <div style={{ 
+  display: 'flex', 
+  gap: '1rem', 
+  marginTop: '1rem' 
+}}>
+  <button
+    onClick={navigateToChangeUser}
+    style={{
+      padding: '0.75rem 1rem',
+      backgroundColor: '#3b82f6',
+      border: '1px solid #2563eb',
+      borderRadius: '0.375rem',
+      color: 'white',
+      cursor: 'pointer',
+      fontSize: '1rem'
+    }}
+  >
+    Изменить данные
+  </button>
+  <button
+    onClick={handleDeleteAccount}
+    style={{
+      padding: '0.75rem 1rem',
+      backgroundColor: '#ef4444',
+      border: '1px solid #dc2626',
+      borderRadius: '0.375rem',
+      color: 'white',
+      cursor: 'pointer',
+      fontSize: '1rem'
+    }}
+  >
+    Удалить аккаунт
+  </button>
+</div>
           </div>
 
           <div>

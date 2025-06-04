@@ -25,9 +25,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       setLoading(false);
       return;
     }
-
     try {
-      // Вызываем функцию проверки логина через API
       const response = await fetch('http://localhost:3001/', {
         method: 'POST',
         headers: {
@@ -37,15 +35,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || 'Ошибка авторизации');
       }
-
-        // Если аутентификация успешна
         localStorage.setItem('userId', data.user_id);
         router.push('/pages');
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка авторизации');
     } finally {

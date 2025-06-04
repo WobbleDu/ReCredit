@@ -55,21 +55,15 @@ const checkLogin = (body) => {
 //POST
 const createUser = (body) => {
   return new Promise(function(resolve, reject) {
-    const { login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country } = body;
-    
-    pool.query(
-      'INSERT INTO _users (login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', 
-      [login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], 
-      (error, results) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(results.rows[0]); // Возвращаем созданного пользователя
-        }
+    const { login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country } = body
+    pool.query('INSERT INTO _users (login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', [login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
+      if (error) {
+        reject(error)
       }
-    );
-  });
-};
+      resolve();
+    })
+  })
+}
 
 //DELETE
 const deleteUser = (id) => {
@@ -87,9 +81,9 @@ const deleteUser = (id) => {
 //PUT
 const editUserByID = (body) => {
   return new Promise(function(resolve, reject) {
-    const {id,login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country} = body
-    console.log(login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country)
-    pool.query('UPDATE customers SET firstname = $3, lastname = $4, birthdate=$5, phonenumber =$6, inn = $7, passportseries = $8, passportnumber = $9, income = $10, country = $11 WHERE id_user = $1', [id, login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
+    const {id,login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country, dti} = body
+    console.log(id,login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country, dti)
+    pool.query('UPDATE _users SET firstname = $2, lastname = $3, birthdate=$4, phonenumber =$5, inn = $6, passportserie = $7, passportnumber = $8, income = $9, country = $10 WHERE id_user = $1', [id, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
       if (error) {
         reject(error)
       }

@@ -21,6 +21,7 @@ app.post('/', (req, res) => {
       if (!userId) {
         return res.status(401).json({ message: 'Неверный логин или пароль' });
       }
+      console.log(res);
       res.status(200).json({ user_id: userId }); // Теперь фронтенд получит `user_id`
     })
     .catch(error => {
@@ -201,7 +202,7 @@ app.delete('/notification/:id',(req,res) =>{
     })
 })
 app.post('/notifications', (req, res) => {
-  user_model.createUser(req.body)
+  notification_model.createNotification(req.body)
     .then(response => {
       res.status(201).send(response);
       console.log('Notification created successfully:', response);
@@ -366,7 +367,8 @@ app.put('/payments/:id', (req, res) => {
     });
 });
 }
-{//OFFERS
+{
+  //OFFERS
 const offers_model = require('./src/app/api/offer/offers_model')
 app.get('/offers', (req, res) => {
   offers_model.getOffers()
@@ -378,30 +380,6 @@ app.get('/offers', (req, res) => {
     res.status(500).send(error);
   })
 })
-// Получение активных предложений
-app.get('/offers/active/:userId', async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    const activeOffers = await offers_model.getActiveOffers(userId);
-    res.json(activeOffers);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Получение рекомендованных предложений
-app.get('/offers/recommended/:userId', async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    const recommendedOffers = await offers_model.getRecommendedOffers(userId);
-    res.json(recommendedOffers);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 app.get('/offers/:id',(req,res) =>{
     if (isNaN(req.params.id)) {  // Проверяем, что ID - число
     res.status(400).send('Invalid offer ID');
@@ -451,42 +429,35 @@ app.post('/offers', (req, res) => {
     });
 });
 app.put('/offers/:id', (req, res) => {
-  const userId = req.params.id;
+  const offerId = req.params.id;
   
-  // Проверка наличия ID
-  if (!userId) {
-    return res.status(400).send({ error: 'Offer ID is required' });
+  if (!offerId) {
+    return res.status(400).json({ error: 'Offer ID is required' });
   }
 
-  // Проверка тела запроса
   if (!req.body || Object.keys(req.body).length === 0) {
-    return res.status(400).send({ error: 'Request offer is empty' });
+    return res.status(400).json({ error: 'Request offer is empty' });
   }
 
-  const OfferData = { 
-    id: OfferId,
+  const offerData = { 
+    
     ...req.body 
   };
 
-  offers_model.editOfferByID(OfferData)
+  offers_model.editOfferByID(offerData)
     .then(response => {
       res.status(200).json({
         success: true,
-        message: `Offer with ID ${OfferId} updated successfully`,
+        message: `Offer with ID ${offerId} updated successfully`,
         data: response
       });
-      console.log(`Offer ${OfferId} updated:`, req.body);
     })
     .catch(error => {
-      console.error(`Error updating offer ${OfferId}:`, error);
-      
-      // Определяем тип ошибки
-      const statusCode = error.message.includes('not found') ? 404 : 500;
-      
-      res.status(statusCode).json({
+      console.error(`Error updating offer ${offerId}:`, error);
+      res.status(500).json({
         success: false,
-        message: `Failed to update user ${OfferId}`,
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: `Failed to update offer ${offerId}`,
+        error: error.message
       });
     });
 });

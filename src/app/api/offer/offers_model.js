@@ -22,6 +22,60 @@ const getOffers = () => {
   });
 };
 
+const getRecommendedOffers = (userId) => {
+  return new Promise(function(resolve, reject) {
+    pool.query(`
+      SELECT 
+        o.id_offer AS id_offer,
+        o.type AS type,
+        o.creditsum AS creditsum,
+        o.interestrate AS interestrate,
+        u.firstname AS owner_firstname,
+        u.lastname AS owner_lastname
+      FROM 
+        offers o
+      JOIN 
+        _users u ON o.owner_id = u.id_user
+      WHERE 
+        o.interestrate < 15
+        AND o.state = 0
+        AND o.creditSum <= (SELECT income * 10 FROM _users WHERE id_user = $1)
+        AND o.owner_id != $1
+    `, [userId], (error, results) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(results.rows);
+    });
+  });
+};
+
+const getActiveOffers = (userId) => {
+  return new Promise(function(resolve, reject) {
+    pool.query(`
+      SELECT 
+        o.id_offer AS id_offer,
+        o.type AS type,
+        o.creditsum AS creditsum,
+        o.interestrate AS interestrate,
+        u.firstname AS owner_firstname,
+        u.lastname AS owner_lastname
+      FROM 
+        offers o
+      JOIN 
+        _users u ON o.owner_id = u.id_user
+      WHERE 
+        o.state = 0
+        AND o.owner_id != $1
+    `, [userId], (error, results) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(results.rows);
+    });
+  });
+};
+
 //GET
 const getOfferByID = (id) => {
   return new Promise(function(resolve, reject) {
@@ -37,6 +91,7 @@ const getOfferByID = (id) => {
     })
   })
 }
+
 
 //POST
 const createOffer = (body) => {
@@ -67,21 +122,29 @@ const deleteOffer = (id) => {
 //PUT
 const editOfferByID = (body) => {
   return new Promise(function(resolve, reject) {
-    const { id_offer,owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend } = body
-    console.log(id_offer,owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend)
-    pool.query('UPDATE offers SET owner_id=$2, guest_id=$3, type=$4, creditsum=$5, interestrate=$6, state=$7, datestart=$8, dateend=$9 WHERE id_user = $1', [owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend], (error, results) => {
-      if (error) {
-        reject(error)
+    const { id_offer, owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend } = body;
+    pool.query(
+      'UPDATE offers SET owner_id=$2, guest_id=$3, type=$4, creditsum=$5, interestrate=$6, state=$7, datestart=$8, dateend=$9 WHERE id_offer = $1', 
+      [id_offer, owner_id, guest_id, type, creditsum, interestrate, state, datestart, dateend], 
+      (error, results) => {
+        if (error) {
+          reject(error);
+        }
+        resolve({ 
+          success: true, 
+          updatedOffer: body,
+          rowCount: results.rowCount  // Using the results
+        });
       }
-      resolve(`Offer edited`);
-    })
-  })
-}
-
+    );
+  });
+};
 module.exports = {
   getOffers,
   getOfferByID,
   createOffer,
   deleteOffer,
-  editOfferByID
+  editOfferByID, 
+  getRecommendedOffers,
+  getActiveOffers
 }

@@ -1,20 +1,4 @@
 const pool = require('../db.js'); // Импортируем pool
-const updateNotification = (id, flag) => {
-  console.log('id: ',id,'\tflag: ',flag);
-    return new Promise(function(resolve, reject) {
-    pool.query('UPDATE notifications SET flag = $1 WHERE id_notifications = $2 RETURNING *',
-      [flag, id], (error, results) => {
-      if (error) {
-        reject(error);
-      }
-      if (results.rows.length === 0) {
-          resolve(null);
-        } else {
-          resolve(results.rows[0]);
-        }
-    })
-  })
-  }
 
 //GET
 const getNotifications = () => {
@@ -49,6 +33,9 @@ const getNotificationByOwnerID = (id) => {
     pool.query('SELECT * FROM notifications WHERE user_id = $1', [id], (error, results) => {
       if (error) {
         reject(error);
+      }
+      if (results.rows.length === 0) {
+          resolve(null);
         } else {
           resolve(results.rows);
         }
@@ -58,8 +45,8 @@ const getNotificationByOwnerID = (id) => {
 //POST
 const createNotification = (body) => {
   return new Promise(function(resolve, reject) {
-    const { text, flag, datetime } = body
-    pool.query('INSERT INTO notifications (text, flag, datetime) VALUES ($1, $2, $3) RETURNING *', [text, flag, datetime], (error, results) => {
+    const { user_id, text, flag, datetime } = body
+    pool.query('INSERT INTO notifications (user_id, text, flag, datetime) VALUES ($1, $2, $3, $4) RETURNING *', [user_id, text, flag, datetime], (error, results) => {
       if (error) {
         reject(error)
       }
@@ -101,6 +88,5 @@ module.exports = {
   getNotificationByOwnerID,
   createNotification,
   deleteNotification,
-  editNotificationByID,
-  updateNotification
+  editNotificationByID
 }

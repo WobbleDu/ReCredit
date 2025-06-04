@@ -57,8 +57,24 @@ const ProfilePage: React.FC = () => {
 
   const router = useRouter();
 
-  const handleOfferClick = (offerId: number) => {
-    router.push(`/offers/${offerId}`);
+  const handleOfferClick = (offer: Offer) => {
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      alert('Пользователь не авторизован');
+      return;
+    }
+
+    if (offer.guest_id && Number(userId) === offer.guest_id) {
+      localStorage.setItem('offerId', offer.id_offer.toString());
+      router.push(`/pages/payments/${offer.id_offer}`);
+    } else {
+      alert('Эта сделка уже была заключена другим пользователем');
+    }
+  };
+
+  const handleSettingsClick = (offerId: number) => {
+    router.push(`/pages/offer_settings/${offerId}`);
   };
 
   const formatBirthDate = (dateString: string) => {
@@ -241,7 +257,7 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="container" style={{height: '100%', backgroundColor: 'white'}}>
+    <div className="container" style={{height: '100%'}}>
       <header className="header">
         <div className="headerContent">
           <h1 className="title">Профиль пользователя</h1>
@@ -385,7 +401,7 @@ const ProfilePage: React.FC = () => {
 
       <section className="profileSection">
         <div className="avatarPlaceholder">
-          {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}
+          {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}S
         </div>
         <div className="profileInfo">
           <h2 className="userName">
@@ -396,7 +412,7 @@ const ProfilePage: React.FC = () => {
             <p><strong>Дата рождения:</strong> {userData.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</p>
             <p><strong>Страна:</strong> {userData.country || 'не указана'}</p>
             <p><strong>Доход:</strong> {userData.income?.toLocaleString('ru-RU') || '0'} ₽</p>
-            <p><strong>Кредитный рейтинг:</strong> {userData.dti ?? 0}/100</p>
+            <p><strong>Кредитный рейтинг:</strong> {(userData.dti * 1).toFixed(2)}</p>
           </div>
         </div>
       </section>
@@ -440,7 +456,7 @@ const ProfilePage: React.FC = () => {
                   </div>
                   <button 
                     className="detailsButton"
-                    onClick={() => handleOfferClick(offer.id_offer)}
+                    onClick={() => handleOfferClick(offer)}
                   >
                     Подробнее
                   </button>
@@ -469,12 +485,22 @@ const ProfilePage: React.FC = () => {
                     <p><strong>Дата начала:</strong> {offer.datestart ? formatBirthDate(offer.datestart) : 'не указана'}</p>
                     <p><strong>Заемщик:</strong> {offer.guest_id ? `ID: ${offer.guest_id}` : 'не указан'}</p>
                   </div>
-                  <button 
-                    className="detailsButton"
-                    onClick={() => handleOfferClick(offer.id_offer)}
-                  >
-                    Подробнее
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      className="detailsButton"
+                      onClick={() => handleOfferClick(offer)}
+                    >
+                      Подробнее
+                    </button>
+                    {offer.owner_id === Number(localStorage.getItem('userId')) && (
+                      <button 
+                        className="settingsButton"
+                        onClick={() => handleSettingsClick(offer.id_offer)}
+                      >
+                        Настройки
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (
@@ -694,6 +720,23 @@ const ProfilePage: React.FC = () => {
         
         .detailsButton:hover {
           background-color: #2980b9;
+        }
+
+        .settingsButton {
+          width: 100%;
+          padding: 10px 0;
+          background-color: #6c757d;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        
+        .settingsButton:hover {
+          background-color: #5a6268;
         }
         
         .noOffers {

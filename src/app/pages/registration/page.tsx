@@ -82,7 +82,7 @@ const RegistrationForm: React.FC = () => {
     }
   };
   const handleLoginClick = () => {
-    router.push('http://localhost:3000/pages/login');
+    router.push('http://localhost:3000/login');
   };
   
     return (
@@ -293,10 +293,10 @@ const RegistrationForm: React.FC = () => {
               style={inputStyle}
             >
               <option value="">Выберите страну</option>
-              <option value="RU">Россия</option>
-              <option value="KZ">Казахстан</option>
-              <option value="BY">Беларусь</option>
-              <option value="UZ">Узбекистан</option>
+              <option value="Россия">Россия</option>
+              <option value="Казахстан">Казахстан</option>
+              <option value="Беларусь">Беларусь</option>
+              <option value="Узбекистан">Узбекистан</option>
               <option value="other">Другая</option>
             </select>
           </div>
@@ -308,7 +308,7 @@ const RegistrationForm: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '12px',
-                backgroundColor: '#4f46e5',
+                backgroundColor: '#3498db',
                 color: 'white',
                 fontWeight: '500',
                 borderRadius: '6px',
@@ -330,7 +330,7 @@ const RegistrationForm: React.FC = () => {
               onClick={handleLoginClick}
               style={{
                 fontSize: '0.875rem',
-                color: '#4f46e5',
+                color: '#3498db',
                 fontWeight: '500',
                 background: 'none',
                 border: 'none',

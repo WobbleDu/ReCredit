@@ -7,8 +7,6 @@ interface OfferFormData {
   type: string;
   creditsum: string;
   interestrate: string;
-  datestart: string;
-  dateend: string;
 }
 
 const CreateOfferPage: React.FC = () => {
@@ -17,8 +15,6 @@ const CreateOfferPage: React.FC = () => {
     type: '',
     creditsum: '',
     interestrate: '',
-    datestart: '',
-    dateend: ''
   });
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,15 +39,6 @@ const CreateOfferPage: React.FC = () => {
       return;
     }
 
-    const startDate = new Date(formData.datestart);
-    const endDate = new Date(formData.dateend);
-
-    if (startDate >= endDate) {
-      setError('Дата окончания должна быть позже даты начала');
-      setLoading(false);
-      return;
-    }
-
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) {
@@ -64,8 +51,6 @@ const CreateOfferPage: React.FC = () => {
         creditsum: parseFloat(formData.creditsum),
         interestrate: parseFloat(formData.interestrate),
         state: 0, // На рассмотрении
-        datestart: formData.datestart,
-        dateend: formData.dateend
       };
 
       const response = await fetch('http://localhost:3001/offers', {
@@ -82,7 +67,7 @@ const CreateOfferPage: React.FC = () => {
       }
 
       // После успешного создания - переход в профиль
-      router.push(`/pages/profile/${userId}`);
+      router.push('/pages/profile');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
       setLoading(false);
@@ -94,8 +79,7 @@ const CreateOfferPage: React.FC = () => {
       minHeight: 'calc(100vh - 57px)',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-       backgroundColor: 'white'
+      justifyContent: 'center'
     }}>
       <div style={{
         maxWidth: '600px',
@@ -176,32 +160,6 @@ const CreateOfferPage: React.FC = () => {
               max="100"
               step="0.1"
               placeholder="10.5"
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="datestart" style={labelStyle}>Дата начала*</label>
-            <input
-              type="date"
-              id="datestart"
-              name="datestart"
-              value={formData.datestart}
-              onChange={handleChange}
-              required
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label htmlFor="dateend" style={labelStyle}>Дата окончания*</label>
-            <input
-              type="date"
-              id="dateend"
-              name="dateend"
-              value={formData.dateend}
-              onChange={handleChange}
-              required
               style={inputStyle}
             />
           </div>
