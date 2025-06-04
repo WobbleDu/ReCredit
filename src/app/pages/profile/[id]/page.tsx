@@ -75,8 +75,6 @@ const ProfilePage: React.FC = () => {
 
   const handleSettingsClick = (offerId: Number) => {
     const offer = lendOffers.find(o => o.id_offer === offerId);
-    alert(offer?.state)
-    alert('хуй')
   if (offer?.state !== 0) {
     alert('Настройки доступны только для неактивных предложений');
     return;
@@ -502,7 +500,7 @@ const ProfilePage: React.FC = () => {
                       <button 
                       className="settingsButton"
                       onClick={() => handleSettingsClick(offer.id_offer)}>
-                        НАНАНАН
+                        Подробнее
                       </button>
                   </div>
                 </div>
