@@ -81,12 +81,28 @@ const editNotificationByID = (body) => {
     })
   })
 }
-
+const updateNotification = (id, flag) => {
+  console.log('id: ',id,'\tflag: ',flag);
+    return new Promise(function(resolve, reject) {
+    pool.query('UPDATE notifications SET flag = $1 WHERE id_notifications = $2 RETURNING *',
+      [flag, id], (error, results) => {
+      if (error) {
+        reject(error);
+      }
+      if (results.rows.length === 0) {
+          resolve(null);
+        } else {
+          resolve(results.rows[0]);
+        }
+    })
+  })
+  }
 module.exports = {
   getNotifications,
   getNotificationByID,
   getNotificationByOwnerID,
   createNotification,
   deleteNotification,
-  editNotificationByID
+  editNotificationByID,
+  updateNotification
 }

@@ -186,7 +186,7 @@ const PaymentPage: React.FC = () => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 user_id: parseInt(userId),
-                text: `Вы приняли ${paymentText.toLowerCase()}`,
+                text: `${paymentText}`,
                 flag: false,
                 datetime: currentDate
               }),
