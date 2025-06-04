@@ -73,8 +73,15 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleSettingsClick = (offerId: number) => {
-    router.push(`/pages/offer_settings/${offerId}`);
+  const handleSettingsClick = (offerId: Number) => {
+    const offer = lendOffers.find(o => o.id_offer === offerId);
+    alert(offer?.state)
+    alert('хуй')
+  if (offer?.state !== 0) {
+    alert('Настройки доступны только для неактивных предложений');
+    return;
+  }
+  else {router.push(`/pages/offer_settings/${offerId}`)}
   };
 
   const formatBirthDate = (dateString: string) => {
@@ -457,9 +464,9 @@ const ProfilePage: React.FC = () => {
                   <button 
                     className="detailsButton"
                     onClick={() => handleOfferClick(offer)}
-                  >
-                    Подробнее
-                  </button>
+                      >
+                      Подробнее
+                      </button>
                 </div>
               ))
             ) : (
@@ -492,14 +499,11 @@ const ProfilePage: React.FC = () => {
                     >
                       Подробнее
                     </button>
-                    {offer.owner_id === Number(localStorage.getItem('userId')) && (
                       <button 
-                        className="settingsButton"
-                        onClick={() => handleSettingsClick(offer.id_offer)}
-                      >
-                        Настройки
+                      className="settingsButton"
+                      onClick={() => handleSettingsClick(offer.id_offer)}>
+                        НАНАНАН
                       </button>
-                    )}
                   </div>
                 </div>
               ))

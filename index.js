@@ -404,7 +404,7 @@ app.delete('/offers/:id',(req,res) =>{
     res.status(400).send('Invalid offer ID');
     return;
     }
-    offers_model.deleteUser(req.params.id)
+    offers_model.deleteOffer(req.params.id)
     .then(response => {
         if (!response) {
         res.status(404).send('Offer not found');
