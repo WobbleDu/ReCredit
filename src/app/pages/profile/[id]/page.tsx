@@ -500,7 +500,7 @@ const ProfilePage: React.FC = () => {
                       <button 
                       className="settingsButton"
                       onClick={() => handleSettingsClick(offer.id_offer)}>
-                        Подробнее
+                        Настройки
                       </button>
                   </div>
                 </div>
