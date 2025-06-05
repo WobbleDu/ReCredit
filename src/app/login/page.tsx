@@ -172,20 +172,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                </label>
              </div>
              
-             <button
-               type="button"
-               onClick={() => alert('Функция восстановления пароля')}
-               style={{
-                 fontSize: '0.875rem',
-                 color: '#4f46e5',
-                 fontWeight: '500',
-                 background: 'none',
-                 border: 'none',
-                 cursor: 'pointer'
-               }}
-             >
-               Забыли пароль?
-             </button>
            </div>
            
            <button

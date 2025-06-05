@@ -39,6 +39,7 @@ const OfferSettingsPage = () => {
         const userIdNumber = Number(userIdFromStorage);
         setUserId(userIdNumber);
 
+        const offerId = localStorage.getItem('offerId');
         const response = await fetch(`http://localhost:3001/offers/${id}`);
         if (!response.ok) {
           throw new Error('Не удалось загрузить предложение');

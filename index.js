@@ -376,6 +376,29 @@ app.put('/payments/:id', (req, res) => {
 {
   //OFFERS
 const offers_model = require('./src/app/api/offer/offers_model')
+// Получение активных предложений
+app.get('/offers/active/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const activeOffers = await offers_model.getActiveOffers(userId);
+    res.json(activeOffers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Получение рекомендованных предложений
+app.get('/offers/recommended/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const recommendedOffers = await offers_model.getRecommendedOffers(userId);
+    res.json(recommendedOffers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 app.get('/offers', (req, res) => {
   offers_model.getOffers()
   .then(response => {
@@ -386,6 +409,29 @@ app.get('/offers', (req, res) => {
     res.status(500).send(error);
   })
 })
+
+app.get('/offers/active/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const activeOffers = await offers_model.getActiveOffers(userId);
+    res.json(activeOffers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Получение рекомендованных предложений
+app.get('/offers/recommended/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const recommendedOffers = await offers_model.getRecommendedOffers(userId);
+    res.json(recommendedOffers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 app.get('/offers/:id',(req,res) =>{
     if (isNaN(req.params.id)) {  // Проверяем, что ID - число
     res.status(400).send('Invalid offer ID');

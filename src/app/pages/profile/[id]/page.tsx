@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { allowedNodeEnvironmentFlags } from 'process';
 
 interface UserData {
   ID_User: number;
@@ -203,8 +204,10 @@ const ProfilePage: React.FC = () => {
         if (!offersResponse.ok) {
           throw new Error(`Ошибка предложений: ${offersResponse.status}`);
         }
+        
+        const contentLength = offersResponse.headers.get('Content-Length');
+    if (contentLength === '0') { const allOffers = []; return}
         const allOffers = await offersResponse.json();
-
         const numericUserId = parseInt(userId, 10);
 
         const borrows = allOffers.filter((offer: Offer) => 
@@ -223,6 +226,9 @@ const ProfilePage: React.FC = () => {
         if (!responseNotifications.ok) {
           throw new Error('Не удалось загрузить уведомления');
         }
+
+        const notiResponseLen = responseNotifications.headers.get('Content-Length');
+    if (notiResponseLen === '0') {setNotifications([]); return}
         const notificationsData = await responseNotifications.json();
         setNotifications(notificationsData);
         setUnreadCount(notificationsData.filter((n: { flag: any; }) => !n.flag).length);
