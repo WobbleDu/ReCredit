@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { resolve } from 'path';
 
 const RegistrationForm: React.FC = () => {
   const router = useRouter();
@@ -65,15 +66,13 @@ const RegistrationForm: React.FC = () => {
         },
         body: JSON.stringify(userData),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || 'Ошибка регистрации');
       }
-
       // Если регистрация успешна
-      localStorage.setItem('userId', data.user_id);
+      alert(data.id_user);
+      localStorage.setItem('userId', data.id_user);
       router.push('/pages/lk/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка регистрации');

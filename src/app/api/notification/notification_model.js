@@ -7,7 +7,9 @@ const getNotifications = () => {
       if (error) {
         reject(error)
       }
-      resolve(results.rows); 
+      if(results.rows){
+      resolve(results.rows);
+      }
     })
   }) 
 }

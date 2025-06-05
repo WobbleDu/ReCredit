@@ -80,22 +80,28 @@ app.delete('/users/:id',(req,res) =>{
 app.post('/users', (req, res) => {
   user_model.createUser(req.body)
     .then(response => {
-      res.status(201).send(response);
-      console.log('User created successfully:', response);
+      // Отправляем JSON с ID нового пользователя
+      res.status(201).json(response);
     })
     .catch(error => {
       console.error('Error creating user:', error);
       
-      // Кастомные статусы для разных ошибок
-      if (error.message.includes('обязательные поля')) {
-        res.status(400).send({ error: error.message });
-      } else if (error.message.includes('email уже существует')) {
-        res.status(409).send({ error: error.message });
+      // Детализированная обработка ошибок
+      if (error.message.includes('является обязательным')) {
+        res.status(400).json({ error: error.message });
+      } else if (error.message.includes('Пароли не совпадают')) {
+        res.status(400).json({ error: error.message });
+      } else if (error.message.includes('уже существует')) {
+        res.status(409).json({ error: error.message });
       } else {
-        res.status(500).send({ error: 'Internal server error' });
+        res.status(500).json({ 
+          error: 'Внутренняя ошибка сервера',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
       }
     });
 });
+
 app.put('/users/:id', (req, res) => {
   const userId = req.params.id;
   

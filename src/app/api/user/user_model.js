@@ -55,15 +55,42 @@ const checkLogin = (body) => {
 //POST
 const createUser = (body) => {
   return new Promise(function(resolve, reject) {
-    const { login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country } = body
-    pool.query('INSERT INTO _users (login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', [login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], (error, results) => {
-      if (error) {
-        reject(error)
+    // Проверка обязательных полей
+    const requiredFields = ['login', 'password', 'firstname', 'lastname', 'birthdate', 
+                          'phonenumber', 'inn', 'passportserie', 'passportnumber', 'country'];
+    
+    for (const field of requiredFields) {
+      if (!body[field]) {
+        reject(new Error(`Поле ${field} является обязательным`));
+        return;
       }
-      resolve();
-    })
-  })
-}
+    }   
+
+    const { login, password, firstname, lastname, birthdate, 
+           phonenumber, inn, passportserie, passportnumber, income, country } = body;
+
+    pool.query(
+      `INSERT INTO _users 
+       (login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       RETURNING id_user`, // Явно указываем, что хотим вернуть ID
+      [login, password, firstname, lastname, birthdate, phonenumber, inn, passportserie, passportnumber, income, country], 
+      (error, results) => {
+        if (error) {
+          // Обработка ошибки уникальности логина
+          if (error.code === '23505' && error.constraint === '_users_login_key') {
+            reject(new Error('Пользователь с таким логином уже существует'));
+          } else {
+            reject(error);
+          }
+        } else {
+          // Возвращаем данные нового пользователя
+          resolve(results.rows[0]);
+        }
+      }
+    );
+  });
+};
 
 //DELETE
 const deleteUser = (id) => {

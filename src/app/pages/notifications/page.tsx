@@ -28,8 +28,12 @@ const NotificationsPage: React.FC = () => {
         if (!response.ok) {
           throw new Error('Не удалось загрузить уведомления');
         }
-        const data = await response.json();
-        setNotifications(data);
+         // Проверка на пустое тело ответа
+    const contentLength = response.headers.get('Content-Length');
+    if (contentLength === '0') {
+      setNotifications([]);
+    }else{const data = await response.json();
+        setNotifications(data)};
       } catch (err) {
         console.error('Ошибка загрузки уведомлений:', err);
       }
