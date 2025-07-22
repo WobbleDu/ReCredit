@@ -50,7 +50,7 @@ const CreateOfferPage: React.FC = () => {
         type: formData.type,
         creditsum: parseFloat(formData.creditsum),
         interestrate: parseFloat(formData.interestrate),
-        state: 0, // На рассмотрении
+        state: 0
       };
 
       const response = await fetch('http://localhost:3001/offers', {
