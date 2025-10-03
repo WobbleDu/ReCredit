@@ -412,7 +412,7 @@ const ProfilePage: React.FC = () => {
 
       <section className="profileSection">
         <div className="avatarPlaceholder">
-          {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}S
+          {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}
         </div>
         <div className="profileInfo">
           <h2 className="userName">

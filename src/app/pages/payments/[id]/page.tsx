@@ -89,26 +89,6 @@ const PaymentPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const createNotification = async (userId: number, text: string) => {
-    try {
-      const currentDate = new Date().toISOString().split('T')[0];
-      await fetch('http://localhost:3001/notifications', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          text: text,
-          flag: false,
-          datetime: currentDate
-        }),
-      });
-    } catch (err) {
-      console.error('Ошибка при создании уведомления:', err);
-    }
-  };
-
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
