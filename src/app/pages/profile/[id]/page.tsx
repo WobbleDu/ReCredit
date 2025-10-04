@@ -68,6 +68,7 @@ const ProfilePage: React.FC = () => {
 
     if (offer.guest_id && Number(userId) === offer.guest_id) {
       localStorage.setItem('offerId', offer.id_offer.toString());
+      localStorage.setItem('userId', userId);
       router.push(`/pages/payments/${offer.id_offer}`);
     } else {
       alert('Эта сделка уже была заключена другим пользователем');

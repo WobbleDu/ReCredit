@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import styles from './styles.module.css';
 
 interface PaymentData {
   id_payment: number;
@@ -21,6 +23,18 @@ interface OfferData {
   type: string;
 }
 
+interface Notification {
+  id_notifications: number;
+  user_id: number;
+  text: string;
+  flag: boolean;
+  datetime: string;
+}
+
+interface PaymentFormData {
+  amount: string;
+}
+
 const PaymentPage: React.FC = () => {
   const router = useRouter();
   const [offer, setOffer] = useState<OfferData | null>(null);
@@ -28,14 +42,30 @@ const PaymentPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const [paymentAmount, setPaymentAmount] = useState<string>('');
   const [remainingAmount, setRemainingAmount] = useState<number>(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    watch
+  } = useForm<PaymentFormData>();
+
+  const amountValue = watch('amount');
+
+  // Загрузка данных предложения, платежей и уведомлений
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const offerId = localStorage.getItem('offerId');
+        const currentUserId = localStorage.getItem('userId');
+        setUserId(currentUserId);
         
         if (!offerId) {
           throw new Error('ID предложения не найден в localStorage');
@@ -46,7 +76,6 @@ const PaymentPage: React.FC = () => {
         if (!offerResponse.ok) throw new Error('Ошибка при загрузке предложения');
         const offerData = await offerResponse.json();
         
-        // Преобразуем числовые поля
         const processedOffer = {
           ...offerData,
           creditsum: Number(offerData.creditsum),
@@ -55,15 +84,17 @@ const PaymentPage: React.FC = () => {
         };
         setOffer(processedOffer);
 
-        // Получаем платежи ТОЛЬКО для этого предложения
+        // Получаем платежи
         const paymentsResponse = await fetch(`http://localhost:3001/payments?offer_id=${offerId}`);
         if (!paymentsResponse.ok) throw new Error('Ошибка при загрузке платежей');
         const allPayments: PaymentData[] = await paymentsResponse.json();
-        const filteredPayments = allPayments.filter(payment => payment.offer_id === Number(offerId)).map(payment => ({
-          ...payment,
-          summary: Number(payment.summary),
-          remain: Number(payment.remain) 
-        }));
+        const filteredPayments = allPayments
+          .filter(payment => payment.offer_id === Number(offerId))
+          .map(payment => ({
+            ...payment,
+            summary: Number(payment.summary),
+            remain: Number(payment.remain) 
+          }));
         
         setPayments(filteredPayments);
 
@@ -74,8 +105,21 @@ const PaymentPage: React.FC = () => {
         } else {
           remain = Number(processedOffer.creditsum) || 0;
         }
-
         setRemainingAmount(remain);
+
+        // Загружаем уведомления
+        if (currentUserId) {
+          const responseNotifications = await fetch(`http://localhost:3001/user/${currentUserId}/notifications`);
+          if (responseNotifications.ok) {
+            const notificationsData = await responseNotifications.json();
+            const sortedNotifications = notificationsData.sort((a: Notification, b: Notification) => {
+              if (a.flag !== b.flag) return a.flag ? 1 : -1;
+              return new Date(b.datetime).getTime() - new Date(a.datetime).getTime();
+            });
+            setNotifications(sortedNotifications);
+            setUnreadCount(notificationsData.filter((n: Notification) => !n.flag).length);
+          }
+        }
 
       } catch (err) {
         console.error('Ошибка при загрузке данных:', err);
@@ -89,17 +133,18 @@ const PaymentPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: PaymentFormData) => {
     try {
       setLoading(true);
       setError('');
       setSuccess('');
 
       const offerId = localStorage.getItem('offerId');
+      const currentUserId = localStorage.getItem('userId');
+      
       if (!offerId) throw new Error('ID предложения не найден');
       
-      const amount = parseFloat(paymentAmount);
+      const amount = parseFloat(data.amount);
       if (isNaN(amount)) throw new Error('Некорректная сумма платежа');
       if (amount <= 0) throw new Error('Сумма платежа должна быть положительной');
       if (amount > remainingAmount) throw new Error('Сумма платежа превышает остаток');
@@ -125,7 +170,7 @@ const PaymentPage: React.FC = () => {
 
       // Обновляем состояние
       setRemainingAmount(newRemain);
-      setPaymentAmount('');
+      setValue('amount', '');
       setSuccess(`Платеж на сумму ${amount.toFixed(2)} ₽ успешно внесен!`);
 
       // Обновляем список платежей
@@ -141,10 +186,8 @@ const PaymentPage: React.FC = () => {
       setPayments(updatedPayments);
 
       // Создаем уведомления
-      if (offer) {
+      if (offer && currentUserId) {
         try {
-          const userId = localStorage.getItem('userId');
-          
           const paymentText = `По ${offer.type} внесен платеж ${amount.toFixed(2)}₽. Остаток: ${newRemain.toFixed(2)}₽`;
           
           // Уведомление владельцу
@@ -159,19 +202,17 @@ const PaymentPage: React.FC = () => {
             }),
           });
 
-          // Уведомление гостю (если userId существует)
-          if (userId) {
-            await fetch('http://localhost:3001/notifications', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                user_id: parseInt(userId),
-                text: `${paymentText}`,
-                flag: false,
-                datetime: currentDate
-              }),
-            });
-          }
+          // Уведомление текущему пользователю
+          await fetch('http://localhost:3001/notifications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: parseInt(currentUserId),
+              text: paymentText,
+              flag: false,
+              datetime: currentDate
+            }),
+          });
         } catch (notificationError) {
           console.error('Ошибка создания уведомлений:', notificationError);
         }
@@ -185,176 +226,324 @@ const PaymentPage: React.FC = () => {
     }
   };
 
+  // Функции для уведомлений
+  const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
+    try {
+      const response = await fetch(`http://localhost:3001/notifications/${notificationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flag: isRead }),
+      });
+      
+      if (!response.ok) throw new Error('Не удалось обновить уведомление');
+      return await response.json();
+    } catch (error) {
+      console.error('Ошибка при обновлении уведомления:', error);
+      throw error;
+    }
+  };
+
+  const markAsRead = async (id: number) => {
+    try {
+      await updateNotificationOnServer(id, true);
+      const updatedNotifications = notifications.map(n => 
+        n.id_notifications === id ? { ...n, flag: true } : n
+      );
+      const sortedNotifications = updatedNotifications.sort((a, b) => {
+        if (a.flag !== b.flag) return a.flag ? 1 : -1;
+        return new Date(b.datetime).getTime() - new Date(a.datetime).getTime();
+      });
+      setNotifications(sortedNotifications);
+      setUnreadCount(prev => prev - 1);
+    } catch (error) {
+      console.error('Ошибка при пометке уведомления как прочитанного:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const unreadIds = notifications
+        .filter(n => !n.flag)
+        .map(n => n.id_notifications);
+      
+      await Promise.all(unreadIds.map(id => updateNotificationOnServer(id, true)));
+      const updatedNotifications = notifications.map(n => ({ ...n, flag: true }));
+      const sortedNotifications = updatedNotifications.sort((a, b) => 
+        new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+      );
+      setNotifications(sortedNotifications);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Ошибка при пометке всех уведомлений как прочитанных:', error);
+    }
+  };
+
+  const formatDate = (dateInput: string | Date) => {
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    return date.toLocaleDateString('ru-RU', { 
+      day: 'numeric', 
+      month: 'short', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const displayedNotifications = notifications.slice(0, 5);
+
+  // Функции навигации - ОБНОВЛЕНО
+  const navigateToProfile = () => router.push(`/pages/profile/${userId}`);
+  const navigateToMain = () => router.push('/pages');
+  const navigateToNotifications = () => router.push('/pages/notifications');
+
   if (loading) {
     return (
-      <div style={{
-        minHeight: 'calc(100vh - 57px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <p>Загрузка данных...</p>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>
+          <p>Загрузка данных...</p>
+        </div>
       </div>
     );
   }
 
   if (!offer) {
     return (
-      <div style={{
-        minHeight: 'calc(100vh - 57px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <p>Не удалось загрузить данные о предложении</p>
+      <div className={styles.container}>
+        <div className={styles.errorContainer}>
+          <p>Не удалось загрузить данные о предложении</p>
+        </div>
       </div>
     );
   }
 
+  const isButtonDisabled = remainingAmount <= 0 || loading || !amountValue || parseFloat(amountValue) <= 0;
+
   return (
-    <div style={{
-      minHeight: 'calc(100vh - 57px)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      gap: '20px'
-    }}>
-      {/* Информация о сделке */}
-      <div style={{
-        width: '100%',
-        maxWidth: '600px',
-        padding: '20px',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        backgroundColor: '#f9fafb'
-      }}>
-        <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>Информация о сделке</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Тип сделки:</p>
-            <p style={{ fontSize: '16px', fontWeight: '500' }}>{offer.type}</p>
+    <div className={styles.container}>
+      <div className={styles.wrapper}>
+        {/* Шапка с уведомлениями */}
+        <header className={styles.header}>
+          <h2 className={styles.title}>
+            Управление платежами
+          </h2>
+          
+          <div className={styles.headerControls}>
+            <div className={styles.notificationWrapper}>
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`${styles.notificationButton} ${showNotifications ? styles.notificationButtonActive : ''}`}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="#2c3e50"/>
+                </svg>
+                {unreadCount > 0 && (
+                  <span className={styles.notificationBadge}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              
+              {showNotifications && (
+                <div className={styles.notificationDropdown}>
+                  <div className={styles.notificationHeader}>
+                    <h3>Уведомления</h3>
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={markAllAsRead}
+                        className={styles.markAllReadButton}
+                      >
+                        Прочитать все
+                      </button>
+                    )}
+                  </div>
+                  {displayedNotifications.length === 0 ? (
+                    <div className={styles.noNotifications}>
+                      Нет новых уведомлений
+                    </div>
+                  ) : (
+                    <>
+                      {displayedNotifications.map((notification) => (
+                        <div 
+                          key={notification.id_notifications}
+                          onClick={() => markAsRead(notification.id_notifications)}
+                          className={`${styles.notificationItem} ${notification.flag ? '' : styles.unreadNotification}`}
+                        >
+                          <div className={styles.notificationText}>
+                            {notification.text}
+                          </div>
+                          <div className={styles.notificationDate}>
+                            {formatDate(notification.datetime)}
+                          </div>
+                        </div>
+                      ))}
+                      {notifications.length > 5 && (
+                        <div 
+                          onClick={navigateToNotifications}
+                          className={styles.showAllNotifications}
+                        >
+                          Показать все уведомления ({notifications.length})
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <button 
+              onClick={navigateToProfile}
+              className={styles.profileButton}
+            >
+              <div className={styles.userAvatar}>
+                U
+              </div>
+              Профиль
+            </button>
+            
+            <button 
+              onClick={navigateToMain}
+              className={styles.cabinetButton}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="white"/>
+              </svg>
+              Главная
+            </button>
           </div>
+        </header>
+
+        {/* Основное содержимое */}
+        <div className={styles.contentGrid}>
+          {/* Информация о сделке */}
           <div>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Сумма кредита:</p>
-            <p style={{ fontSize: '16px', fontWeight: '500' }}>{offer.creditsum.toFixed(2)} ₽</p>
+            <h3 className={styles.sectionTitle}>
+              Информация о сделке
+            </h3>
+            <div className={styles.sectionContainer}>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  <strong>Тип сделки</strong>
+                </p>
+                <p className={styles.infoValue}>
+                  {offer.type}
+                </p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  <strong>Сумма кредита</strong>
+                </p>
+                <p className={styles.infoValue}>
+                  {offer.creditsum.toFixed(2)} ₽
+                </p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  <strong>Процентная ставка</strong>
+                </p>
+                <p className={styles.infoValue}>
+                  {offer.interestrate.toFixed(2)}%
+                </p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  <strong>Статус</strong>
+                </p>
+                <p className={styles.infoValue}>
+                  {offer.state === 1 ? 'Активна' : offer.state === 2 ? 'Завершена' : 'Неизвестно'}
+                </p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  <strong>Остаток долга</strong>
+                </p>
+                <p className={styles.infoValue}>
+                  {remainingAmount.toFixed(2)} ₽
+                </p>
+              </div>
+            </div>
           </div>
+
+          {/* Форма для внесения платежа */}
           <div>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Процентная ставка:</p>
-            <p style={{ fontSize: '16px', fontWeight: '500' }}>{offer.interestrate.toFixed(2)}%</p>
-          </div>
-          <div>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Статус:</p>
-            <p style={{ fontSize: '16px', fontWeight: '500' }}>
-              {offer.state === 1 ? 'Активна' : offer.state === 2 ? 'Завершена' : 'Неизвестно'}
-            </p>
-          </div>
-          <div>
-            <p style={{ fontSize: '14px', color: '#6b7280' }}>Остаток:</p>
-            <p style={{ fontSize: '16px', fontWeight: '500' }}>{remainingAmount.toFixed(2)} ₽</p>
+            <h3 className={styles.sectionTitle}>
+              Внести платеж
+            </h3>
+            <div className={styles.sectionContainer}>
+              {error && <p className={styles.errorMessage}>{error}</p>}
+              {success && <p className={styles.successMessage}>{success}</p>}
+              
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="amount" className={styles.infoLabel}>
+                    <strong>Сумма платежа (₽)</strong>
+                  </label>
+                  <input
+                    type="number"
+                    id="amount"
+                    {...register('amount', {
+                      required: 'Введите сумму платежа',
+                      min: {
+                        value: 0.01,
+                        message: 'Сумма должна быть больше 0'
+                      },
+                      max: {
+                        value: remainingAmount,
+                        message: `Сумма не может превышать ${remainingAmount.toFixed(2)}`
+                      },
+                      validate: {
+                        positive: value => parseFloat(value) > 0 || 'Сумма должна быть положительной'
+                      }
+                    })}
+                    className={styles.formInput}
+                    placeholder="Введите сумму"
+                    step="0.01"
+                    min="0.01"
+                    max={remainingAmount}
+                    disabled={remainingAmount <= 0}
+                  />
+                  {errors.amount && <p className={styles.errorMessage}>{errors.amount.message}</p>}
+                </div>
+                
+                <button
+                  type="submit"
+                  className={styles.submitButton}
+                  disabled={isButtonDisabled}
+                >
+                  {remainingAmount > 0 ? 'Внести платеж' : 'Кредит погашен'}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Форма для внесения платежа */}
-      <div style={{
-        width: '100%',
-        maxWidth: '600px',
-        padding: '20px',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        backgroundColor: '#f9fafb'
-      }}>
-        <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>Внести платеж</h2>
-        {error && <p style={{ color: 'red', marginBottom: '16px' }}>{error}</p>}
-        {success && <p style={{ color: 'green', marginBottom: '16px' }}>{success}</p>}
-        
-        <form onSubmit={handlePaymentSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="amount" style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#6b7280' }}>
-              Сумма платежа (₽)
-            </label>
-            <input
-              type="number"
-              id="amount"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '4px',
-                fontSize: '16px'
-              }}
-              placeholder="Введите сумму"
-              step="0.01"
-              min="0.01"
-              max={remainingAmount}
-              disabled={remainingAmount <= 0}
-            />
-          </div>
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: remainingAmount > 0 ? '#3b82f6' : '#9ca3af',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '16px',
-              fontWeight: '500',
-              cursor: remainingAmount > 0 ? 'pointer' : 'not-allowed'
-            }}
-            disabled={remainingAmount <= 0 || loading}
-          >
-            {remainingAmount > 0 ? 'Внести платеж' : 'Кредит погашен'}
-          </button>
-        </form>
-      </div>
-
-      {/* История платежей */}
-      {payments.length > 0 && (
-        <div style={{
-          width: '100%',
-          maxWidth: '600px',
-        }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>История платежей</h3>
-          <div style={{
-            overflowX: 'auto',
-            border: '1px solid #e5e7eb',
-            borderRadius: '6px'
-          }}>
-            <table style={{
-              width: '100%',
-              borderCollapse: 'collapse'
-            }}>
-              <thead>
-                <tr style={{
-                  backgroundColor: '#f9fafb',
-                  textAlign: 'left'
-                }}>
-                  <th style={{ padding: '12px', fontSize: '14px', color: '#6b7280' }}>Дата</th>
-                  <th style={{ padding: '12px', fontSize: '14px', color: '#6b7280' }}>Сумма</th>
-                  <th style={{ padding: '12px', fontSize: '14px', color: '#6b7280' }}>Остаток</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id_payment} style={{
-                    borderTop: '1px solid #e5e7eb'
-                  }}>
-                    <td style={{ padding: '12px', fontSize: '14px' }}>{payment.datetime}</td>
-                    <td style={{ padding: '12px', fontSize: '14px' }}>{payment.summary.toFixed(2)} ₽</td>
-                    <td style={{ padding: '12px', fontSize: '14px' }}>{payment.remain.toFixed(2)} ₽</td>
+        {/* История платежей */}
+        {payments.length > 0 && (
+          <div className={styles.paymentHistory}>
+            <h3 className={styles.sectionTitle}>
+              История платежей
+            </h3>
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>
+                <thead>
+                  <tr className={styles.tableHeader}>
+                    <th className={styles.tableHeaderCell}><strong>Дата</strong></th>
+                    <th className={styles.tableHeaderCell}><strong>Сумма платежа</strong></th>
+                    <th className={styles.tableHeaderCell}><strong>Остаток долга</strong></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {payments.map((payment) => (
+                    <tr key={payment.id_payment}>
+                      <td className={styles.tableCell}>{payment.datetime}</td>
+                      <td className={styles.tableCell}>{payment.summary.toFixed(2)} ₽</td>
+                      <td className={styles.tableCell}>{payment.remain.toFixed(2)} ₽</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
