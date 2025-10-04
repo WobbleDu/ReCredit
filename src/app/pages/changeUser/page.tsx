@@ -52,18 +52,32 @@ const ChangeUserPage: React.FC = () => {
   };
 
   const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '').slice(1);
-    if (!numbers) return '+7 ';
-    
-    const match = numbers.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
-    if (!match) return '+7 ';
-    
-    return '+7 ' + 
-      (match[1] ? `(${match[1]}` : '') + 
-      (match[2] ? `) ${match[2]}` : '') + 
-      (match[3] ? `-${match[3]}` : '') + 
-      (match[4] ? `-${match[4]}` : '');
-  };
+  // Оставляем только цифры
+  const numbers = value.replace(/\D/g, '');
+  
+  // Если номер начинается с 7 или 8, заменяем на +7
+  let cleanNumbers = numbers;
+  if (numbers.startsWith('7') || numbers.startsWith('8')) {
+    cleanNumbers = '7' + numbers.slice(1);
+  }
+  
+  // Ограничиваем 11 цифрами (без +)
+  cleanNumbers = cleanNumbers.slice(0, 11);
+  
+  // Форматируем
+  if (cleanNumbers.length === 0) return '+7 ';
+  
+  const match = cleanNumbers.match(/^7?(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
+  if (!match) return '+7 ';
+  
+  let formatted = '+7';
+  if (match[1]) formatted += ` (${match[1]}`;
+  if (match[2]) formatted += `) ${match[2]}`;
+  if (match[3]) formatted += `-${match[3]}`;
+  if (match[4]) formatted += `-${match[4]}`;
+  
+  return formatted;
+};
 
   // Обработчики изменения полей с масками
   const handlePassportSerieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
