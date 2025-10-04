@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import styles from './styles.module.css';
 
 interface OfferData {
   id_offer: number;
@@ -180,12 +181,7 @@ const handleDealSubmit = async () => {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: 'calc(100vh - 57px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className={styles.loadingContainer}>
         <div>Загрузка данных...</div>
       </div>
     );
@@ -193,132 +189,89 @@ const handleDealSubmit = async () => {
 
   if (error) {
     return (
-      <div style={{
-        minHeight: 'calc(100vh - 57px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ color: 'red' }}>{error}</div>
+      <div className={styles.errorContainer}>
+        <div>{error}</div>
       </div>
     );
   }
 
   if (!offer || !owner) {
     return (
-      <div style={{
-        minHeight: 'calc(100vh - 57px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <div className={styles.loadingContainer}>
         <div>Данные не найдены</div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: 'calc(100vh - 57px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        maxWidth: '800px',
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        padding: '24px'
-      }}>
-        <h2 style={{
-          marginBottom: '24px',
-          textAlign: 'center',
-          fontSize: '24px',
-          fontWeight: '600',
-          color: '#111827'
-        }}>
+    <div className={styles.container}>
+      <div className={styles.contentWrapper}>
+        <h2 className={styles.title}>
           Детали сделки
         </h2>
 
         {success && (
-          <div style={{
-            backgroundColor: '#dcfce7',
-            color: '#166534',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '16px',
-            fontSize: '14px'
-          }}>
+          <div className={styles.successMessage}>
             {success}
           </div>
         )}
 
         {error && (
-          <div style={{
-            backgroundColor: '#fee2e2',
-            color: '#b91c1c',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '16px',
-            fontSize: '14px'
-          }}>
+          <div className={styles.errorMessage}>
             {error}
           </div>
         )}
 
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>Информация о предложении</h3>
-          <div style={infoGrid}>
-            <div style={infoItem}>
-              <span style={infoLabel}>Тип:</span>
-              <span style={infoValue}>{offer.type}</span>
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Информация о предложении</h3>
+          <div className={styles.infoGrid}>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Тип:</span>
+              <span className={styles.infoValue}>{offer.type}</span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>Сумма:</span>
-              <span style={infoValue}>{offer.creditsum} ₽</span>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Сумма:</span>
+              <span className={styles.infoValue}>{offer.creditsum} ₽</span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>Процентная ставка:</span>
-              <span style={infoValue}>{offer.interestrate}%</span>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Процентная ставка:</span>
+              <span className={styles.infoValue}>{offer.interestrate}%</span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>Статус:</span>
-              <span style={infoValue}>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Статус:</span>
+              <span className={styles.infoValue}>
                 {offer.state === 0 ? 'На рассмотрении' : offer.state === 1 ? 'В работе' : 'Завершено'}
               </span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>Дата начала:</span>
-              <span style={infoValue}>{offer.datestart || 'Не указана'}</span>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Дата начала:</span>
+              <span className={styles.infoValue}>{offer.datestart || 'Не указана'}</span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>Дата окончания:</span>
-              <span style={infoValue}>{offer.dateend}</span>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Дата окончания:</span>
+              <span className={styles.infoValue}>{offer.dateend}</span>
             </div>
           </div>
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>Информация о владельце</h3>
-          <div style={infoGrid}>
-            <div style={infoItem}>
-              <span style={infoLabel}>Имя:</span>
-              <span style={infoValue}>{owner.firstname} {owner.lastname}</span>
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Информация о владельце</h3>
+          <div className={styles.infoGrid}>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Имя:</span>
+              <span className={styles.infoValue}>{owner.firstname} {owner.lastname}</span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>Телефон:</span>
-              <span style={infoValue}>{owner.phonenumber}</span>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Телефон:</span>
+              <span className={styles.infoValue}>{owner.phonenumber}</span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>ИНН:</span>
-              <span style={infoValue}>{owner.inn}</span>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>ИНН:</span>
+              <span className={styles.infoValue}>{owner.inn}</span>
             </div>
-            <div style={infoItem}>
-              <span style={infoLabel}>Доход:</span>
-              <span style={infoValue}>{owner.income} ₽</span>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Доход:</span>
+              <span className={styles.infoValue}>{owner.income} ₽</span>
             </div>
           </div>
         </div>
@@ -327,15 +280,8 @@ const handleDealSubmit = async () => {
           <button
             onClick={handleDealSubmit}
             disabled={loading}
+            className={styles.submitButton}
             style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: '#4f46e5',
-              color: 'white',
-              fontWeight: '500',
-              borderRadius: '6px',
-              border: 'none',
-              cursor: 'pointer',
               opacity: loading ? 0.7 : 1,
               pointerEvents: loading ? 'none' : 'auto'
             }}
@@ -345,47 +291,13 @@ const handleDealSubmit = async () => {
         )}
 
         {offer.state === 1 && (
-          <div style={{
-            padding: '12px',
-            backgroundColor: '#e0f2fe',
-            color: '#0369a1',
-            borderRadius: '6px',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
+          <div className={styles.statusMessage}>
             Сделка уже заключена
           </div>
         )}
       </div>
     </div>
   );
-};
-
-// Стили для информации
-const infoGrid = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-  gap: '16px'
-};
-
-const infoItem = {
-  display: 'flex',
-  flexDirection: 'column' as const,
-  padding: '12px',
-  backgroundColor: '#f9fafb',
-  borderRadius: '6px'
-};
-
-const infoLabel = {
-  fontSize: '14px',
-  color: '#6b7280',
-  marginBottom: '4px'
-};
-
-const infoValue = {
-  fontSize: '16px',
-  fontWeight: '500',
-  color: '#111827'
 };
 
 export default DealPage;

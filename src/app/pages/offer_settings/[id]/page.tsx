@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import styles from './styles.module.css';
 
 interface Offer {
   id_offer: number;
@@ -145,28 +146,19 @@ const OfferSettingsPage = () => {
 
   if (loading) {
     return (
-      <div className="container">
-        <div style={{ textAlign: 'center', padding: '40px' }}>Загрузка данных...</div>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>Загрузка данных...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div style={{ color: 'red', textAlign: 'center', padding: '40px' }}>{error}</div>
+      <div className={styles.container}>
+        <div className={styles.errorContainer}>{error}</div>
         <button 
           onClick={handleBackToProfile}
-          style={{
-            display: 'block',
-            margin: '20px auto',
-            padding: '10px 20px',
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          className={styles.backButton}
         >
           Вернуться в профиль
         </button>
@@ -176,29 +168,29 @@ const OfferSettingsPage = () => {
 
   if (!offer) {
     return (
-      <div className="container">
-        <div style={{ textAlign: 'center', padding: '40px' }}>Предложение не найдено</div>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>Предложение не найдено</div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <header className="header">
-        <div className="headerContent">
-          <h1 className="title">Редактирование предложения</h1>
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <h1 className={styles.title}>Редактирование предложения</h1>
           <button 
             onClick={handleBackToProfile}
-            className="navButton"
+            className={styles.navButton}
           >
             Назад к профилю
           </button>
         </div>
       </header>
 
-      <section className="formSection">
+      <section className={styles.formSection}>
         <form onSubmit={handleSubmit}>
-          <div className="formGroup">
+          <div className={styles.formGroup}>
             <label htmlFor="type">Тип предложения</label>
             <input
               id="type"
@@ -209,7 +201,7 @@ const OfferSettingsPage = () => {
             />
           </div>
 
-          <div className="formGroup">
+          <div className={styles.formGroup}>
             <label htmlFor="creditsum">Сумма кредита (₽)</label>
             <input
               type="number"
@@ -223,7 +215,7 @@ const OfferSettingsPage = () => {
             />
           </div>
 
-          <div className="formGroup">
+          <div className={styles.formGroup}>
             <label htmlFor="interestrate">Процентная ставка (%)</label>
             <input
               type="number"
@@ -238,13 +230,13 @@ const OfferSettingsPage = () => {
             />
           </div>
 
-          <div className="formActions">
-            <button type="submit" className="saveButton">
+          <div className={styles.formActions}>
+            <button type="submit" className={styles.saveButton}>
               Сохранить изменения
             </button>
             <button 
               type="button" 
-              className="deleteButton"
+              className={styles.deleteButton}
               onClick={handleDelete}
             >
               Удалить предложение
@@ -252,125 +244,6 @@ const OfferSettingsPage = () => {
           </div>
         </form>
       </section>
-
-      <style jsx>{`
-        .container {
-          font-family: 'Segoe UI', Roboto, sans-serif;
-          color: #333;
-          line-height: 1.6;
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-        
-        .header {
-          background-color: #3498db;
-          color: white;
-          padding: 20px 0;
-          margin-bottom: 30px;
-          border-radius: 8px;
-        }
-        
-        .headerContent {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          max-width: 1100px;
-          margin: 0 auto;
-          padding: 0 20px;
-        }
-        
-        .title {
-          margin: 0;
-          font-size: 24px;
-        }
-        
-        .navButton {
-          padding: 8px 16px;
-          background-color: transparent;
-          border: 1px solid white;
-          color: white;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.3s;
-        }
-        
-        .navButton:hover {
-          background-color: rgba(255,255,255,0.1);
-        }
-        
-        .formSection {
-          background-color: white;
-          border-radius: 8px;
-          padding: 30px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          max-width: 600px;
-          margin: 0 auto;
-        }
-        
-        .formGroup {
-          margin-bottom: 20px;
-        }
-        
-        .formGroup label {
-          display: block;
-          margin-bottom: 8px;
-          font-weight: 500;
-          color: #4b5563;
-        }
-        
-        .formGroup input,
-        .formGroup select {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #e5e7eb;
-          border-radius: 4px;
-          font-size: 16px;
-        }
-        
-        .formGroup input:focus,
-        .formGroup select:focus {
-          outline: none;
-          border-color: #3498db;
-          box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-        
-        .formActions {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 30px;
-        }
-        
-        .saveButton {
-          padding: 12px 24px;
-          background-color: #3498db;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          font-size: 16px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .saveButton:hover {
-          background-color: #2980b9;
-        }
-        
-        .deleteButton {
-          padding: 12px 24px;
-          background-color: #e74c3c;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          font-size: 16px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .deleteButton:hover {
-          background-color: #c0392b;
-        }
-      `}</style>
     </div>
   );
 };

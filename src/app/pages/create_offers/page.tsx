@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import styles from './styles.module.css';
 
 interface OfferFormData {
   type: string;
@@ -75,53 +76,28 @@ const CreateOfferPage: React.FC = () => {
   };
 
   return (
-    <div style={{
-      minHeight: 'calc(100vh - 57px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      <div style={{
-        maxWidth: '600px',
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        padding: '24px'
-      }}>
-        <h2 style={{
-          marginBottom: '24px',
-          textAlign: 'center',
-          fontSize: '24px',
-          fontWeight: '600',
-          color: '#111827'
-        }}>
+    <div className={styles.container}>
+      <div className={styles.formContainer}>
+        <h2 className={styles.title}>
           Создать новое предложение
         </h2>
 
         {error && (
-          <div style={{
-            backgroundColor: '#fee2e2',
-            color: '#b91c1c',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '16px',
-            fontSize: '14px'
-          }}>
+          <div className={styles.error}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="type" style={labelStyle}>Тип предложения*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="type" className={styles.label}>Тип предложения*</label>
             <select
               id="type"
               name="type"
               value={formData.type}
               onChange={handleChange}
               required
-              style={inputStyle}
+              className={styles.input}
             >
               <option value="">Выберите тип</option>
               <option value="Кредит">Кредит</option>
@@ -131,8 +107,8 @@ const CreateOfferPage: React.FC = () => {
             </select>
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="creditsum" style={labelStyle}>Сумма*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="creditsum" className={styles.label}>Сумма*</label>
             <input
               type="number"
               id="creditsum"
@@ -143,12 +119,12 @@ const CreateOfferPage: React.FC = () => {
               min="0"
               step="0.01"
               placeholder="100000"
-              style={inputStyle}
+              className={styles.input}
             />
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="interestrate" style={labelStyle}>Процентная ставка*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="interestrate" className={styles.label}>Процентная ставка*</label>
             <input
               type="number"
               id="interestrate"
@@ -160,22 +136,15 @@ const CreateOfferPage: React.FC = () => {
               max="100"
               step="0.1"
               placeholder="10.5"
-              style={inputStyle}
+              className={styles.input}
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
+            className={styles.submitButton}
             style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: '#4f46e5',
-              color: 'white',
-              fontWeight: '500',
-              borderRadius: '6px',
-              border: 'none',
-              cursor: 'pointer',
               opacity: loading ? 0.7 : 1,
               pointerEvents: loading ? 'none' : 'auto'
             }}
@@ -186,24 +155,6 @@ const CreateOfferPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-// Стили для формы
-const labelStyle = {
-  display: 'block',
-  marginBottom: '8px',
-  fontSize: '14px',
-  fontWeight: '500',
-  color: '#374151'
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '10px 12px',
-  border: '1px solid #d1d5db',
-  borderRadius: '6px',
-  fontSize: '14px',
-  boxSizing: 'border-box' as const
 };
 
 export default CreateOfferPage;
