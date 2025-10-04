@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { allowedNodeEnvironmentFlags } from 'process';
+import styles from './styles.module.css';
 
 interface UserData {
   ID_User: number;
@@ -76,11 +76,11 @@ const ProfilePage: React.FC = () => {
 
   const handleSettingsClick = (offerId: Number) => {
     const offer = lendOffers.find(o => o.id_offer === offerId);
-  if (offer?.state !== 0) {
-    alert('Настройки доступны только для неактивных предложений');
-    return;
-  }
-  else {router.push(`/pages/offer_settings/${offerId}`)}
+    if (offer?.state !== 0) {
+      alert('Настройки доступны только для неактивных предложений');
+      return;
+    }
+    else {router.push(`/pages/offer_settings/${offerId}`)}
   };
 
   const formatBirthDate = (dateString: string) => {
@@ -206,7 +206,7 @@ const ProfilePage: React.FC = () => {
         }
         
         const contentLength = offersResponse.headers.get('Content-Length');
-    if (contentLength === '0') { const allOffers = []; return}
+        if (contentLength === '0') { const allOffers = []; return}
         const allOffers = await offersResponse.json();
         const numericUserId = parseInt(userId, 10);
 
@@ -228,7 +228,7 @@ const ProfilePage: React.FC = () => {
         }
 
         const notiResponseLen = responseNotifications.headers.get('Content-Length');
-    if (notiResponseLen === '0') {setNotifications([]); return}
+        if (notiResponseLen === '0') {setNotifications([]); return}
         const notificationsData = await responseNotifications.json();
         setNotifications(notificationsData);
         setUnreadCount(notificationsData.filter((n: { flag: any; }) => !n.flag).length);
@@ -245,147 +245,91 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container">
-        <div style={{ textAlign: 'center', padding: '40px' }}>Загрузка данных...</div>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>Загрузка данных...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div style={{ color: 'red', textAlign: 'center', padding: '40px' }}>{error}</div>
+      <div className={styles.container}>
+        <div className={styles.errorContainer}>{error}</div>
       </div>
     );
   }
 
   if (!userData) {
     return (
-      <div className="container">
-        <div style={{ textAlign: 'center', padding: '40px' }}>Пользователь не найден</div>
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>Пользователь не найден</div>
       </div>
     );
   }
 
+  const displayedNotifications = notifications.slice(0, 5);
+
   return (
-    <div className="container" style={{height: '100%'}}>
-      <header className="header">
-        <div className="headerContent">
-          <h1 className="title">Профиль пользователя</h1>
-          <nav className="nav">
-            <div style={{ position: 'relative', marginRight: '10px' }}>
+    <div className={styles.container}>
+      <div className={styles.wrapper}>
+        {/* Шапка */}
+        <header className={styles.header}>
+          <h1 className={styles.title}>Профиль пользователя</h1>
+          <h2 className={styles.userFullName}>
+            {userData.lastname} {userData.firstname}
+          </h2>
+          <div className={styles.headerControls}>
+            <div className={styles.notificationWrapper}>
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  padding: 8,
-                  borderRadius: 50,
-                  backgroundColor: showNotifications ? '#e1e1e1' : 'transparent'
-                }}
+                className={`${styles.notificationButton} ${showNotifications ? styles.notificationButtonActive : ''}`}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="white"/>
+                  <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="#2c3e50"/>
                 </svg>
                 {unreadCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    backgroundColor: '#e74c3c',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: 18,
-                    height: 18,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12,
-                    fontWeight: 'bold'
-                  }}>
+                  <span className={styles.notificationBadge}>
                     {unreadCount}
                   </span>
                 )}
               </button>
               
               {showNotifications && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 50,
-                  width: 300,
-                  backgroundColor: 'white',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  borderRadius: 8,
-                  zIndex: 100,
-                  maxHeight: 400,
-                  overflowY: 'auto'
-                }}>
-                  <div style={{ 
-                    padding: 15, 
-                    borderBottom: '1px solid #e1e1e1',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <h3 style={{ margin: 0, fontSize: 16, color: '#2c3e50' }}>Уведомления</h3>
-                    <button 
-                      onClick={markAllAsRead}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#3498db',
-                        cursor: 'pointer',
-                        fontSize: 14
-                      }}
-                    >
-                      Прочитать все
-                    </button>
+                <div className={styles.notificationDropdown}>
+                  <div className={styles.notificationHeader}>
+                    <h3>Уведомления</h3>
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={markAllAsRead}
+                        className={styles.markAllReadButton}
+                      >
+                        Прочитать все
+                      </button>
+                    )}
                   </div>
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: 15, textAlign: 'center', color: '#7f8c8d' }}>
+                  {displayedNotifications.length === 0 ? (
+                    <div className={styles.noNotifications}>
                       Нет новых уведомлений
                     </div>
                   ) : (
                     <>
-                      {notifications.map((notification) => (
+                      {displayedNotifications.map((notification) => (
                         <div 
                           key={notification.id_notifications}
                           onClick={() => markAsRead(notification.id_notifications)}
-                          style={{
-                            padding: 15,
-                            borderBottom: '1px solid #e1e1e1',
-                            cursor: 'pointer',
-                            backgroundColor: notification.flag ? 'white' : '#f8f9fa'
-                          }}
+                          className={`${styles.notificationItem} ${notification.flag ? '' : styles.unreadNotification}`}
                         >
-                          <div style={{ 
-                            fontWeight: notification.flag ? 'normal' : 'bold',
-                            marginBottom: 5,
-                            color: '#2c3e50'
-                          }}>
+                          <div className={styles.notificationText}>
                             {notification.text}
                           </div>
-                          <div style={{ 
-                            fontSize: 12,
-                            color: '#7f8c8d'
-                          }}>
+                          <div className={styles.notificationDate}>
                             {formatDate(notification.datetime)}
                           </div>
                         </div>
                       ))}
                       <div 
                         onClick={openAllNotifications}
-                        style={{
-                          padding: 15,
-                          textAlign: 'center',
-                          color: '#3498db',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          borderTop: '1px solid #e1e1e1'
-                        }}
+                        className={styles.showAllNotifications}
                       >
                         Показать все уведомления
                       </div>
@@ -394,365 +338,151 @@ const ProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
-            <button 
-              onClick={() => router.push('/pages/lk')}
-              className="navButton"
-            >
-              Личный кабинет
-            </button>
+            
             <button 
               onClick={() => router.push('/pages')}
-              className="navButton"
+              className={styles.navButton}
             >
-              На главную
+              Главная
             </button>
-          </nav>
-        </div>
-      </header>
-
-      <section className="profileSection">
-        <div className="avatarPlaceholder">
-          {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}
-        </div>
-        <div className="profileInfo">
-          <h2 className="userName">
-            {userData.firstname || 'Имя'} {userData.lastname || 'Фамилия'}
-          </h2>
-          <div className="userDetails">
-            <p><strong>Телефон:</strong> {userData.phonenumber || 'не указан'}</p>
-            <p><strong>Дата рождения:</strong> {userData.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</p>
-            <p><strong>Страна:</strong> {userData.country || 'не указана'}</p>
-            <p><strong>Доход:</strong> {userData.income?.toLocaleString('ru-RU') || '0'} ₽</p>
-            <p><strong>Кредитный рейтинг:</strong> {(userData.dti * 1).toFixed(2)}</p>
+            <button 
+              onClick={() => router.push('/pages/lk')}
+              className={styles.cabinetButton}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="white"/>
+              </svg>
+              Личный кабинет
+            </button>
           </div>
-        </div>
-      </section>
+        </header>
 
-      <section className="tabsSection">
-        <div className="tabs">
-          <button
-            className={`tabButton ${activeTab === 'borrow' ? 'activeTab' : ''}`}
-            onClick={() => setActiveTab('borrow')}
-          >
-            Мои займы ({borrowOffers.length})
-          </button>
-          <button
-            className={`tabButton ${activeTab === 'lend' ? 'activeTab' : ''}`}
-            onClick={() => setActiveTab('lend')}
-          >
-            Мои инвестиции ({lendOffers.length})
-          </button>
-        </div>
+        {/* Информация о пользователе */}
+        <section className={styles.profileSection}>
+          <div className={styles.profileInfo}>
+            <div className={styles.avatarPlaceholder}>
+              {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}
+            </div>
+            <div className={styles.userDetails}>
+              <div className={styles.userDetailItem}>
+                <span className={styles.userDetailLabel}>Телефон:</span>
+                <span className={styles.userDetailValue}>{userData.phonenumber || 'не указан'}</span>
+              </div>
+              <div className={styles.userDetailItem}>
+                <span className={styles.userDetailLabel}>Дата рождения:</span>
+                <span className={styles.userDetailValue}>{userData.birthdate ? formatBirthDate(userData.birthdate) : 'не указана'}</span>
+              </div>
+              <div className={styles.userDetailItem}>
+                <span className={styles.userDetailLabel}>Страна:</span>
+                <span className={styles.userDetailValue}>{userData.country || 'не указана'}</span>
+              </div>
+              <div className={styles.userDetailItem}>
+                <span className={styles.userDetailLabel}>Доход:</span>
+                <span className={styles.userDetailValue}>{userData.income?.toLocaleString('ru-RU') || '0'} ₽</span>
+              </div>
+              <div className={styles.userDetailItem}>
+                <span className={styles.userDetailLabel}>Кредитный рейтинг:</span>
+                <span className={styles.userDetailValue}>{(userData.dti * 1).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        <div className="offersList">
-          {activeTab === 'borrow' ? (
-            borrowOffers.length > 0 ? (
-              borrowOffers.map((offer) => (
-                <div key={offer.id_offer} className="offerCard">
-                  <div className="offerHeader">
-                    <h3 className="offerTitle">{offer.type || 'Тип не указан'}</h3>
-                    <span className={`statusBadge ${
-                      offer.state === 1 ? 'activeBadge' : 
-                      offer.state === 2 ? 'completedBadge' : 'pendingBadge'
-                    }`}>
-                      {getStatus(offer.state)}
-                    </span>
-                  </div>
-                  <div className="offerDetails">
-                    <p><strong>Сумма:</strong> {(offer.creditsum ?? 0).toLocaleString('ru-RU')} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.interestrate || '0'}%</p>
-                    <p><strong>Срок:</strong> {calculateTerm(offer.datestart, offer.dateend)}</p>
-                    <p><strong>Дата начала:</strong> {offer.datestart ? formatBirthDate(offer.datestart) : 'не указана'}</p>
-                    <p><strong>Инвестор:</strong> {offer.owner_firstname ? `${offer.owner_firstname} ${offer.owner_lastname}` : 'не указан'}</p>
-                  </div>
-                  <button 
-                    className="detailsButton"
-                    onClick={() => handleOfferClick(offer)}
-                      >
-                      Подробнее
-                      </button>
-                </div>
-              ))
-            ) : (
-              <p className="noOffers">Нет активных займов</p>
-            )
-          ) : (
-            lendOffers.length > 0 ? (
-              lendOffers.map((offer) => (
-                <div key={offer.id_offer} className="offerCard">
-                  <div className="offerHeader">
-                    <h3 className="offerTitle">{offer.type}</h3>
-                    <span className={`statusBadge ${
-                      offer.state === 1 ? 'activeBadge' : 
-                      offer.state === 2 ? 'completedBadge' : 'pendingBadge'
-                    }`}>
-                      {getStatus(offer.state)}
-                    </span>
-                  </div>
-                  <div className="offerDetails">
-                    <p><strong>Сумма:</strong> {(offer.creditsum ?? 0).toLocaleString('ru-RU')} ₽</p>
-                    <p><strong>Ставка:</strong> {offer.interestrate || '0'}%</p>
-                    <p><strong>Срок:</strong> {calculateTerm(offer.datestart, offer.dateend)}</p>
-                    <p><strong>Дата начала:</strong> {offer.datestart ? formatBirthDate(offer.datestart) : 'не указана'}</p>
-                    <p><strong>Заемщик:</strong> {offer.guest_id ? `ID: ${offer.guest_id}` : 'не указан'}</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button 
-                      className="detailsButton"
-                      onClick={() => handleOfferClick(offer)}
-                    >
-                      Подробнее
-                    </button>
-                      <button 
-                      className="settingsButton"
-                      onClick={() => handleSettingsClick(offer.id_offer)}>
-                        Настройки
-                      </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="noOffers">Нет активных инвестиций</p>
-            )
-          )}
-        </div>
-      </section>
+        {/* Табы с предложениями */}
+        <section className={styles.tabsSection}>
+  <div className={styles.tabs}>
+    <button
+      className={`${styles.tabButton} ${activeTab === 'borrow' ? styles.activeTab : ''}`}
+      onClick={() => setActiveTab('borrow')}
+    >
+      Мои займы ({borrowOffers.length})
+    </button>
+    <button
+      className={`${styles.tabButton} ${activeTab === 'lend' ? styles.activeTab : ''}`}
+      onClick={() => setActiveTab('lend')}
+    >
+      Мои инвестиции ({lendOffers.length})
+    </button>
+  </div>
 
-      <style jsx>{`
-        .container {
-          font-family: 'Segoe UI', Roboto, sans-serif;
-          color: #333;
-          line-height: 1.6;
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-        
-        .header {
-          background-color: #3498db;
-          color: white;
-          padding: 20px 0;
-          margin-bottom: 30px;
-          border-radius: 8px;
-        }
-        
-        .headerContent {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          max-width: 1100px;
-          margin: 0 auto;
-          padding: 0 20px;
-        }
-        
-        .title {
-          margin: 0;
-          font-size: 24px;
-        }
-        
-        .nav {
-          display: flex;
-          gap: 10px;
-          align-items: center;
-        }
-        
-        .navButton {
-          padding: 8px 16px;
-          background-color: transparent;
-          border: 1px solid white;
-          color: white;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.3s;
-        }
-        
-        .navButton:hover {
-          background-color: rgba(255,255,255,0.1);
-        }
-        
-        .profileSection {
-          display: flex;
-          align-items: center;
-          gap: 30px;
-          margin-bottom: 40px;
-          padding: 20px;
-          background-color: #f9fafb;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        .avatarPlaceholder {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          background-color: #e5e7eb;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 40px;
-          color: #9ca3af;
-          font-weight: bold;
-        }
-        
-        .profileInfo {
-          flex: 1;
-        }
-        
-        .userName {
-          margin: 0 0 10px 0;
-          font-size: 28px;
-          color: #111827;
-        }
-        
-        .userDetails {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 10px;
-        }
-        
-        .userDetails p {
-          margin: 5px 0;
-        }
-        
-        .userDetails strong {
-          color: #4b5563;
-        }
-        
-        .tabsSection {
-          background-color: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          overflow: hidden;
-        }
-        
-        .tabs {
-          display: flex;
-          border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .tabButton {
-          flex: 1;
-          padding: 15px;
-          background-color: transparent;
-          border: none;
-          cursor: pointer;
-          font-size: 16px;
-          font-weight: 500;
-          color: #6b7280;
-          transition: all 0.3s;
-        }
-        
-        .activeTab {
-          color: #3498db;
-          border-bottom: 2px solid #3498db;
-        }
-        
-        .offersList {
-          padding: 20px;
-        }
-        
-        .offerCard {
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 20px;
-          margin-bottom: 15px;
-          transition: all 0.3s;
-        }
-        
-        .offerCard:hover {
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .offerHeader {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 15px;
-        }
-        
-        .offerTitle {
-          margin: 0;
-          font-size: 18px;
-          color: #111827;
-        }
-        
-        .statusBadge {
-          padding: 4px 10px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-        
-        .activeBadge {
-          background-color: #d1fae5;
-          color: #065f46;
-        }
-        
-        .pendingBadge {
-          background-color: #fee2e2;
-          color: #b91c1c;
-        }
-        
-        .completedBadge {
-          background-color: #dbeafe;
-          color: #1e40af;
-        }
-        
-        .offerDetails {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 10px;
-          margin-bottom: 15px;
-        }
-        
-        .offerDetails p {
-          margin: 5px 0;
-        }
-        
-        .offerDetails strong {
-          color: #4b5563;
-        }
-        
-        .detailsButton {
-          width: 100%;
-          padding: 10px 0;
-          background-color: #3498db;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: bold;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .detailsButton:hover {
-          background-color: #2980b9;
-        }
+  <div className={styles.offersList}>
+    {activeTab === 'borrow' ? (
+      borrowOffers.length > 0 ? (
+        borrowOffers.map((offer) => (
+          <div key={offer.id_offer} className={styles.offerCard}>
+            <div className={styles.offerHeader}>
+              <h3 className={styles.offerTitle}>{offer.type || 'Тип не указан'}</h3>
+              <span className={`${styles.statusBadge} ${
+                offer.state === 1 ? styles.activeBadge : 
+                offer.state === 2 ? styles.completedBadge : styles.pendingBadge
+              }`}>
+                {getStatus(offer.state)}
+              </span>
+            </div>
+            <div className={styles.offerDetails}>
+              <p><strong>Сумма:</strong> {(offer.creditsum ?? 0).toLocaleString('ru-RU')} ₽</p>
+              <p><strong>Ставка:</strong> {offer.interestrate || '0'}%</p>
+              <p><strong>Срок:</strong> {calculateTerm(offer.datestart, offer.dateend)}</p>
+              <p><strong>Дата начала:</strong> {offer.datestart ? formatBirthDate(offer.datestart) : 'не указана'}</p>
+              <p><strong>Инвестор:</strong> {offer.owner_firstname ? `${offer.owner_firstname} ${offer.owner_lastname}` : 'не указан'}</p>
+            </div>
+            {/* Кнопка "Подробнее" на всю ширину для займов */}
+            <button 
+              className={styles.fullWidthButton}
+              onClick={() => handleOfferClick(offer)}
+            >
+              Подробнее
+            </button>
+          </div>
+        ))
+      ) : (
+        <p className={styles.noOffers}>Нет активных займов</p>
+      )
+    ) : (
+      lendOffers.length > 0 ? (
+        lendOffers.map((offer) => (
+          <div key={offer.id_offer} className={styles.offerCard}>
+            <div className={styles.offerHeader}>
+              <h3 className={styles.offerTitle}>{offer.type}</h3>
+              <span className={`${styles.statusBadge} ${
+                offer.state === 1 ? styles.activeBadge : 
+                offer.state === 2 ? styles.completedBadge : styles.pendingBadge
+              }`}>
+                {getStatus(offer.state)}
+              </span>
+            </div>
+            <div className={styles.offerDetails}>
+              <p><strong>Сумма:</strong> {(offer.creditsum ?? 0).toLocaleString('ru-RU')} ₽</p>
+              <p><strong>Ставка:</strong> {offer.interestrate || '0'}%</p>
+              <p><strong>Срок:</strong> {calculateTerm(offer.datestart, offer.dateend)}</p>
+              <p><strong>Дата начала:</strong> {offer.datestart ? formatBirthDate(offer.datestart) : 'не указана'}</p>
+              <p><strong>Заемщик:</strong> {offer.guest_id ? `ID: ${offer.guest_id}` : 'не указан'}</p>
+            </div>
+            <div className={styles.buttonGroup}>
+              {/* Кнопки одинакового размера для инвестиций */}
+              <button 
+                className={`${styles.equalWidthButton} ${styles.detailsButtonEqual}`}
+                onClick={() => handleOfferClick(offer)}
+              >
+                Подробнее
+              </button>
+              <button 
+                className={`${styles.equalWidthButton} ${styles.settingsButtonEqual}`}
+                onClick={() => handleSettingsClick(offer.id_offer)}
+              >
+                Настройки
+              </button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className={styles.noOffers}>Нет активных инвестиций</p>
+      )
+    )}
+  </div>
+</section>
 
-        .settingsButton {
-          width: 100%;
-          padding: 10px 0;
-          background-color: #6c757d;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: bold;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        
-        .settingsButton:hover {
-          background-color: #5a6268;
-        }
-        
-        .noOffers {
-          text-align: center;
-          color: #6b7280;
-          padding: 40px 0;
-        }
-      `}</style>
+      </div>
     </div>
   );
 };

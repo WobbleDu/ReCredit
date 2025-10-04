@@ -71,6 +71,7 @@ const RegistrationForm: React.FC = () => {
         throw new Error(data.message || 'Ошибка регистрации');
       }
       // Если регистрация успешна
+      alert("Аккаунт создан!");
       localStorage.setItem('userId', data.id_user);
       router.push('/pages/lk/');
     } catch (err) {
