@@ -30,6 +30,7 @@
   color: #2c3e50;
   font-size: 28px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .userFullName {
@@ -37,14 +38,16 @@
   color: #2c3e50;
   font-weight: 600;
   margin: 0;
-  margin-left: auto;
-  margin-right: 20px;
+  margin-left: 40px;
+  margin-right: auto;
+  flex-shrink: 0;
 }
 
 .headerControls {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 .notificationWrapper {
@@ -182,6 +185,114 @@
   font-weight: 500;
   transition: all 0.2s;
   white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .userFullName {
+    margin-left: 20px;
+    font-size: 24px;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .wrapper {
+    max-width: 100%;
+    padding: 20px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .userFullName {
+    margin-left: 0;
+    margin-right: 0;
+    font-size: 22px;
+    order: 1;
+  }
+  
+  .title {
+    font-size: 22px;
+    order: 0;
+  }
+  
+  .headerControls {
+    order: 2;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .profileSection {
+    padding: 20px;
+  }
+  
+  .profileInfo {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  
+  .userDetails {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .tabs {
+    flex-direction: column;
+  }
+  
+  .offerDetails {
+    grid-template-columns: 1fr;
+  }
+  
+  .buttonGroup {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerControls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .navButton,
+  .cabinetButton {
+    justify-content: center;
+  }
+  
+  .notificationDropdown {
+    width: 280px;
+    right: -50px;
+  }
+  
+  .userDetails {
+    gap: 10px;
+  }
+  
+  .userDetailItem {
+    font-size: 14px;
+  }
+  
+  .userFullName {
+    font-size: 20px;
+  }
+  
+  .title {
+    font-size: 20px;
+  }
 }
 
 .navButton:hover {
