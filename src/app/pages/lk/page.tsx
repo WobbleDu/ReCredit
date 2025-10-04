@@ -4,8 +4,12 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import styles from './styles.module.css';
 
+import { NotificationBell } from '../../components/notificationBell';
+
+import { useRouterActions } from '../../hooks/useRouterActions'; /*ИСПОЛЬЗОВАТЬ*/
+
 interface User {
-  id_user: string;
+  id_user: number;
   firstname: string;
   lastname: string;
   birthdate: string;
@@ -106,7 +110,6 @@ const AccountPage: React.FC = () => {
   const navigateToProfile = () => router.push(`/pages/profile/${user?.id_user}`);
   const navigateToMain = () => router.push('/pages');
   const navigateToNotifications = () => router.push('/pages/notifications');
-  const navigateToCreateOffers = () => router.push('/pages/create_offers');
   const navigateToChangeUser = () => router.push(`/pages/changeUser`);
 
   // Функции для уведомлений
@@ -232,73 +235,16 @@ const AccountPage: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.wrapper}>
         {/* Шапка с уведомлениями */}
-        <header className={styles.header}>
+        <header className={styles.header}>``
           <h2 className={styles.title}>
             Мой аккаунт
           </h2>
           
           <div className={styles.headerControls}>
-            <div className={styles.notificationWrapper}>
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className={`${styles.notificationButton} ${showNotifications ? styles.notificationButtonActive : ''}`}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="#2c3e50"/>
-                </svg>
-                {unreadCount > 0 && (
-                  <span className={styles.notificationBadge}>
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-              
-              {showNotifications && (
-                <div className={styles.notificationDropdown}>
-                  <div className={styles.notificationHeader}>
-                    <h3>Уведомления</h3>
-                    {unreadCount > 0 && (
-                      <button 
-                        onClick={markAllAsRead}
-                        className={styles.markAllReadButton}
-                      >
-                        Прочитать все
-                      </button>
-                    )}
-                  </div>
-                  {displayedNotifications.length === 0 ? (
-                    <div className={styles.noNotifications}>
-                      Нет новых уведомлений
-                    </div>
-                  ) : (
-                    <>
-                      {displayedNotifications.map((notification) => (
-                        <div 
-                          key={notification.id_notifications}
-                          onClick={() => markAsRead(notification.id_notifications)}
-                          className={`${styles.notificationItem} ${notification.flag ? '' : styles.unreadNotification}`}
-                        >
-                          <div className={styles.notificationText}>
-                            {notification.text}
-                          </div>
-                          <div className={styles.notificationDate}>
-                            {formatDate(notification.datetime)}
-                          </div>
-                        </div>
-                      ))}
-                      {notifications.length > 5 && (
-                        <div 
-                          onClick={navigateToNotifications}
-                          className={styles.showAllNotifications}
-                        >
-                          Показать все уведомления ({notifications.length})
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            <NotificationBell
+              userId={user?.id_user}
+              maxDisplayed={5}
+            />
             
             <button 
               onClick={navigateToProfile}
