@@ -1,7 +1,7 @@
 // components/NotificationBell.tsx
 import { useState } from 'react';
 import { useNotifications} from '../hooks/useNotifications';
-import { type Notification } from '../types/notification';
+import { type Notification } from '../types';
 import styles from '../pages/styles.module.css'; // Ваши стили
 
 

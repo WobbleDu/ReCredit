@@ -1,6 +1,6 @@
 // hooks/useNotifications.ts
 import { useState, useEffect, useCallback } from 'react';
-import { type Notification } from '../types/notification';
+import { type Notification } from '../types';
 
 interface UseNotificationsProps {
   userId: number;

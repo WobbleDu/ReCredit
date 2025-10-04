@@ -13,12 +13,16 @@ export const useRouterActions = () => {
     router.push('/pages/lk');
   }, [router]);
 
+  const goLogin = useCallback(() => {
+    router.push('/login');
+  }, [router]);
+
   const openNotifications = useCallback(() => {
     router.push('/pages/notifications');
   }, [router]);
 
   const openHome = useCallback(() => {
-    router.push('/');
+    router.push('/pages');
   }, [router]);
 
   const openSettings = useCallback(() => {
@@ -46,5 +50,6 @@ export const useRouterActions = () => {
     goBack,
     push,
     replace,
+    goLogin,
   };
 };

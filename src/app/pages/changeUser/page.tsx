@@ -1,27 +1,14 @@
 'use client'
 
-import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useRouterActions } from '../../hooks/useRouterActions';
 import styles from './styles.module.css';
-
-interface User {
-  id_user: string;
-  firstname: string;
-  lastname: string;
-  birthdate: Date;
-  phonenumber: string;
-  inn: string;
-  passportserie: string;
-  passportnumber: string;
-  income: number;
-  country: string;
-  dti: number;
-}
+import { UserData } from '../../types';
 
 const ChangeUserPage: React.FC = () => {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { goBack } = useRouterActions();
+  const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -30,10 +17,9 @@ const ChangeUserPage: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     setValue,
     trigger
-  } = useForm<User>();
+  } = useForm<UserData>();
 
   // Функции для масок
   const formatPassportSerie = (value: string) => {
@@ -52,56 +38,56 @@ const ChangeUserPage: React.FC = () => {
   };
 
   const formatPhone = (value: string) => {
-  // Оставляем только цифры
-  const numbers = value.replace(/\D/g, '');
-  
-  // Если номер начинается с 7 или 8, заменяем на +7
-  let cleanNumbers = numbers;
-  if (numbers.startsWith('7') || numbers.startsWith('8')) {
-    cleanNumbers = '7' + numbers.slice(1);
-  }
-  
-  // Ограничиваем 11 цифрами (без +)
-  cleanNumbers = cleanNumbers.slice(0, 11);
-  
-  // Форматируем
-  if (cleanNumbers.length === 0) return '+7 ';
-  
-  const match = cleanNumbers.match(/^7?(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
-  if (!match) return '+7 ';
-  
-  let formatted = '+7';
-  if (match[1]) formatted += ` (${match[1]}`;
-  if (match[2]) formatted += `) ${match[2]}`;
-  if (match[3]) formatted += `-${match[3]}`;
-  if (match[4]) formatted += `-${match[4]}`;
-  
-  return formatted;
-};
+    // Оставляем только цифры
+    const numbers = value.replace(/\D/g, '');
+    
+    // Если номер начинается с 7 или 8, заменяем на +7
+    let cleanNumbers = numbers;
+    if (numbers.startsWith('7') || numbers.startsWith('8')) {
+      cleanNumbers = '7' + numbers.slice(1);
+    }
+    
+    // Ограничиваем 11 цифрами (без +)
+    cleanNumbers = cleanNumbers.slice(0, 11);
+    
+    // Форматируем
+    if (cleanNumbers.length === 0) return '+7 ';
+    
+    const match = cleanNumbers.match(/^7?(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
+    if (!match) return '+7 ';
+    
+    let formatted = '+7';
+    if (match[1]) formatted += ` (${match[1]}`;
+    if (match[2]) formatted += `) ${match[2]}`;
+    if (match[3]) formatted += `-${match[3]}`;
+    if (match[4]) formatted += `-${match[4]}`;
+    
+    return formatted;
+  };
 
   // Обработчики изменения полей с масками
   const handlePassportSerieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatPassportSerie(e.target.value);
-    setValue('passportserie', formattedValue);
-    trigger('passportserie');
+    setValue('PassportSerie', Number(formattedValue));
+    trigger('PassportSerie');
   };
 
   const handlePassportNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatPassportNumber(e.target.value);
-    setValue('passportnumber', formattedValue);
-    trigger('passportnumber');
+    setValue('PassportNumber', Number(formattedValue));
+    trigger('PassportNumber');
   };
 
   const handleINNChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatINN(e.target.value);
-    setValue('inn', formattedValue);
-    trigger('inn');
+    setValue('INN', formattedValue);
+    trigger('INN');
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatPhone(e.target.value);
-    setValue('phonenumber', formattedValue);
-    trigger('phonenumber');
+    setValue('PhoneNumber', formattedValue);
+    trigger('PhoneNumber');
   };
 
   useEffect(() => {
@@ -121,21 +107,38 @@ const ChangeUserPage: React.FC = () => {
         }
 
         const userData = await response.json();
-        const formattedUser = {
-          ...userData,
-          birthdate: new Date(userData.birthdate)
+        
+        // Адаптируем данные под интерфейс UserData
+        const adaptedUser: UserData = {
+          id_user: userData.id_user,
+          Login: userData.Login || userData.login,
+          firstname: userData.firstname || userData.first_name,
+          LastName: userData.LastName || userData.last_name || userData.lastname,
+          BirthDate: userData.BirthDate || userData.birth_date || userData.birthdate,
+          PhoneNumber: userData.PhoneNumber || userData.phone_number || userData.phonenumber,
+          INN: userData.INN || userData.inn,
+          PassportSerie: userData.PassportSerie || userData.passport_serie || userData.passportserie,
+          PassportNumber: userData.PassportNumber || userData.passport_number || userData.passportnumber,
+          Income: userData.Income || userData.income,
+          Country: userData.Country || userData.country,
+          dti: userData.dti || 0
         };
         
-        setUser(formattedUser);
+        setUser(adaptedUser);
         
         // Устанавливаем значения формы после получения данных
-        Object.keys(formattedUser).forEach(key => {
-          if (key === 'birthdate') {
-            setValue(key as keyof User, formattedUser[key].toISOString().split('T')[0] as any);
-          } else {
-            setValue(key as keyof User, formattedUser[key]);
-          }
-        });
+        setValue('Login', adaptedUser.Login);
+        setValue('firstname', adaptedUser.firstname);
+        setValue('LastName', adaptedUser.LastName);
+        setValue('BirthDate', adaptedUser.BirthDate.split('T')[0]);
+        setValue('PhoneNumber', adaptedUser.PhoneNumber);
+        setValue('INN', adaptedUser.INN);
+        setValue('PassportSerie', adaptedUser.PassportSerie);
+        setValue('PassportNumber', adaptedUser.PassportNumber);
+        setValue('Income', adaptedUser.Income);
+        setValue('Country', adaptedUser.Country);
+        setValue('dti', adaptedUser.dti);
+        
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       } finally {
@@ -146,44 +149,55 @@ const ChangeUserPage: React.FC = () => {
     fetchUserData();
   }, [setValue]);
 
-  const onSubmit = async (data: User) => {
-    try {
-      setLoading(true);
-      setError(null);
-      setSuccess(null);
+ const onSubmit = async (data: UserData) => {
+  try {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        throw new Error('Пользователь не авторизован');
-      }
-
-      // Очищаем телефон от форматирования перед отправкой
-      const cleanedData = {
-        ...data,
-        phonenumber: data.phonenumber.replace(/\D/g, ''),
-        birthdate: new Date(data.birthdate).toISOString().split('T')[0]
-      };
-
-      const response = await fetch(`http://localhost:3001/users/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cleanedData),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Не удалось обновить данные: ${errorText}`);
-      }
-
-      setSuccess('Данные успешно обновлены!');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
-    } finally {
-      setLoading(false);
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      throw new Error('Пользователь не авторизован');
     }
-  };
+
+    // Преобразуем данные в snake_case для бэкенда
+    const requestData = {
+      id_user: data.id_user,
+      login: data.Login,
+      firstname: data.firstname,
+      lastname: data.LastName, // преобразуем в snake_case
+      birthdate: new Date(data.BirthDate).toISOString().split('T')[0], // преобразуем в snake_case
+      phonenumber: data.PhoneNumber.replace(/\D/g, ''), // преобразуем в snake_case
+      inn: data.INN,
+      passportserie: Number(data.PassportSerie), // преобразуем в snake_case
+      passportnumber: Number(data.PassportNumber), // преобразуем в snake_case
+      income: Number(data.Income),
+      country: data.Country,
+      dti: Number(data.dti)
+    };
+
+    console.log('Отправляемые данные:', requestData); // для отладки
+
+    const response = await fetch(`http://localhost:3001/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Не удалось обновить данные: ${errorText}`);
+    }
+
+    setSuccess('Данные успешно обновлены!');
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading && !user) {
     return (
@@ -245,6 +259,20 @@ const ChangeUserPage: React.FC = () => {
               <div className={styles.sectionContainer}>
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>
+                    Логин
+                  </label>
+                  <input
+                    type="text"
+                    {...register('Login', { required: 'Логин обязателен' })}
+                    className={`${styles.input} ${errors.Login ? styles.inputError : ''}`}
+                    disabled
+                  />
+                  {errors.Login && (
+                    <p className={styles.errorText}>{errors.Login.message}</p>
+                  )}
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>
                     Имя
                   </label>
                   <input
@@ -262,11 +290,11 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    {...register('lastname', { required: 'Фамилия обязательна' })}
-                    className={`${styles.input} ${errors.lastname ? styles.inputError : ''}`}
+                    {...register('LastName', { required: 'Фамилия обязательна' })}
+                    className={`${styles.input} ${errors.LastName ? styles.inputError : ''}`}
                   />
-                  {errors.lastname && (
-                    <p className={styles.errorText}>{errors.lastname.message}</p>
+                  {errors.LastName && (
+                    <p className={styles.errorText}>{errors.LastName.message}</p>
                   )}
                 </div>
                 <div className={styles.inputGroup}>
@@ -275,11 +303,11 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="date"
-                    {...register('birthdate', { required: 'Дата рождения обязательна' })}
-                    className={`${styles.input} ${errors.birthdate ? styles.inputError : ''}`}
+                    {...register('BirthDate', { required: 'Дата рождения обязательна' })}
+                    className={`${styles.input} ${errors.BirthDate ? styles.inputError : ''}`}
                   />
-                  {errors.birthdate && (
-                    <p className={styles.errorText}>{errors.birthdate.message}</p>
+                  {errors.BirthDate && (
+                    <p className={styles.errorText}>{errors.BirthDate.message}</p>
                   )}
                 </div>
                 <div className={styles.inputGroup}>
@@ -288,16 +316,16 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="tel"
-                    {...register('phonenumber', { 
+                    {...register('PhoneNumber', { 
                       required: 'Телефон обязателен',
                       validate: value => value.replace(/\D/g, '').length === 11 || 'Номер телефона должен содержать 11 цифр'
                     })}
                     onChange={handlePhoneChange}
-                    className={`${styles.input} ${errors.phonenumber ? styles.inputError : ''}`}
+                    className={`${styles.input} ${errors.PhoneNumber ? styles.inputError : ''}`}
                     placeholder="+7 (999) 999-99-99"
                   />
-                  {errors.phonenumber && (
-                    <p className={styles.errorText}>{errors.phonenumber.message}</p>
+                  {errors.PhoneNumber && (
+                    <p className={styles.errorText}>{errors.PhoneNumber.message}</p>
                   )}
                 </div>
               </div>
@@ -314,7 +342,7 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    {...register('inn', { 
+                    {...register('INN', { 
                       required: 'ИНН обязателен',
                       minLength: { value: 12, message: 'ИНН должен содержать 12 цифр' },
                       maxLength: { value: 12, message: 'ИНН должен содержать 12 цифр' },
@@ -324,12 +352,12 @@ const ChangeUserPage: React.FC = () => {
                       }
                     })}
                     onChange={handleINNChange}
-                    className={`${styles.input} ${errors.inn ? styles.inputError : ''}`}
+                    className={`${styles.input} ${errors.INN ? styles.inputError : ''}`}
                     placeholder="123456789012"
                     maxLength={12}
                   />
-                  {errors.inn && (
-                    <p className={styles.errorText}>{errors.inn.message}</p>
+                  {errors.INN && (
+                    <p className={styles.errorText}>{errors.INN.message}</p>
                   )}
                 </div>
                 <div className={styles.inputGroup}>
@@ -338,7 +366,7 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    {...register('passportserie', { 
+                    {...register('PassportSerie', { 
                       required: 'Серия паспорта обязательна',
                       minLength: { value: 4, message: 'Серия паспорта должна содержать 4 цифры' },
                       maxLength: { value: 4, message: 'Серия паспорта должна содержать 4 цифры' },
@@ -348,12 +376,12 @@ const ChangeUserPage: React.FC = () => {
                       }
                     })}
                     onChange={handlePassportSerieChange}
-                    className={`${styles.input} ${errors.passportserie ? styles.inputError : ''}`}
+                    className={`${styles.input} ${errors.PassportSerie ? styles.inputError : ''}`}
                     placeholder="1234"
                     maxLength={4}
                   />
-                  {errors.passportserie && (
-                    <p className={styles.errorText}>{errors.passportserie.message}</p>
+                  {errors.PassportSerie && (
+                    <p className={styles.errorText}>{errors.PassportSerie.message}</p>
                   )}
                 </div>
                 <div className={styles.inputGroup}>
@@ -362,7 +390,7 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    {...register('passportnumber', { 
+                    {...register('PassportNumber', { 
                       required: 'Номер паспорта обязателен',
                       minLength: { value: 6, message: 'Номер паспорта должен содержать 6 цифр' },
                       maxLength: { value: 6, message: 'Номер паспорта должен содержать 6 цифр' },
@@ -372,12 +400,12 @@ const ChangeUserPage: React.FC = () => {
                       }
                     })}
                     onChange={handlePassportNumberChange}
-                    className={`${styles.input} ${errors.passportnumber ? styles.inputError : ''}`}
+                    className={`${styles.input} ${errors.PassportNumber ? styles.inputError : ''}`}
                     placeholder="123456"
                     maxLength={6}
                   />
-                  {errors.passportnumber && (
-                    <p className={styles.errorText}>{errors.passportnumber.message}</p>
+                  {errors.PassportNumber && (
+                    <p className={styles.errorText}>{errors.PassportNumber.message}</p>
                   )}
                 </div>
                 <div className={styles.inputGroup}>
@@ -386,14 +414,14 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    {...register('income', { 
+                    {...register('Income', { 
                       required: 'Доход обязателен',
                       min: { value: 0, message: 'Доход не может быть отрицательным' }
                     })}
-                    className={`${styles.input} ${errors.income ? styles.inputError : ''}`}
+                    className={`${styles.input} ${errors.Income ? styles.inputError : ''}`}
                   />
-                  {errors.income && (
-                    <p className={styles.errorText}>{errors.income.message}</p>
+                  {errors.Income && (
+                    <p className={styles.errorText}>{errors.Income.message}</p>
                   )}
                 </div>
                 <div className={styles.inputGroup}>
@@ -402,11 +430,11 @@ const ChangeUserPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    {...register('country', { required: 'Страна обязательна' })}
-                    className={`${styles.input} ${errors.country ? styles.inputError : ''}`}
+                    {...register('Country', { required: 'Страна обязательна' })}
+                    className={`${styles.input} ${errors.Country ? styles.inputError : ''}`}
                   />
-                  {errors.country && (
-                    <p className={styles.errorText}>{errors.country.message}</p>
+                  {errors.Country && (
+                    <p className={styles.errorText}>{errors.Country.message}</p>
                   )}
                 </div>
               </div>
@@ -416,7 +444,7 @@ const ChangeUserPage: React.FC = () => {
           <div className={styles.buttonGroup}>
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => goBack()}
               className={styles.cancelButton}
             >
               Отмена

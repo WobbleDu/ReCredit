@@ -1,12 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import styles from './styles.module.css';
 
 import { NotificationBell } from '../../components/notificationBell';
-
-import { useRouterActions } from '../../hooks/useRouterActions'; /*ИСПОЛЬЗОВАТЬ*/
+import { useRouterActions } from '../../hooks/useRouterActions';
 
 interface User {
   id_user: number;
@@ -31,7 +29,7 @@ interface Notification {
 }
 
 const AccountPage: React.FC = () => {
-  const router = useRouter();
+  const { goLogin, openProfile, openHome, push } = useRouterActions();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,14 +42,14 @@ const AccountPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const userId = localStorage.getItem('userId');
-        
+
         if (!userId) {
           throw new Error('Пользователь не авторизован');
         }
 
         // Запрашиваем данные пользователя
         const response = await fetch(`http://localhost:3001/users/${userId}`);
-        
+
         if (!response.ok) {
           throw new Error('Ошибка при загрузке данных пользователя');
         }
@@ -69,7 +67,7 @@ const AccountPage: React.FC = () => {
             }
             return new Date(b.datetime).getTime() - new Date(a.datetime).getTime();
           });
-          
+
           setNotifications(sortedNotifications);
           setUnreadCount(notificationsData.filter((n: { flag: any; }) => !n.flag).length);
         }
@@ -100,17 +98,11 @@ const AccountPage: React.FC = () => {
       }
 
       localStorage.removeItem('userId');
-      router.push('/login');
+      goLogin;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка при удалении аккаунта');
     }
   };
-
-  // Функции навигации
-  const navigateToProfile = () => router.push(`/pages/profile/${user?.id_user}`);
-  const navigateToMain = () => router.push('/pages');
-  const navigateToNotifications = () => router.push('/pages/notifications');
-  const navigateToChangeUser = () => router.push(`/pages/changeUser`);
 
   // Функции для уведомлений
   const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
@@ -122,11 +114,11 @@ const AccountPage: React.FC = () => {
         },
         body: JSON.stringify({ flag: isRead }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Не удалось обновить уведомление');
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Ошибка при обновлении уведомления:', error);
@@ -137,18 +129,18 @@ const AccountPage: React.FC = () => {
   const markAsRead = async (id: number) => {
     try {
       await updateNotificationOnServer(id, true);
-      
-      const updatedNotifications = notifications.map(n => 
+
+      const updatedNotifications = notifications.map(n =>
         n.id_notifications === id ? { ...n, flag: true } : n
       );
-      
+
       const sortedNotifications = updatedNotifications.sort((a, b) => {
         if (a.flag !== b.flag) {
           return a.flag ? 1 : -1;
         }
         return new Date(b.datetime).getTime() - new Date(a.datetime).getTime();
       });
-      
+
       setNotifications(sortedNotifications);
       setUnreadCount(prev => prev - 1);
     } catch (error) {
@@ -161,17 +153,17 @@ const AccountPage: React.FC = () => {
       const unreadIds = notifications
         .filter(n => !n.flag)
         .map(n => n.id_notifications);
-      
+
       await Promise.all(
         unreadIds.map(id => updateNotificationOnServer(id, true))
       );
-      
+
       const updatedNotifications = notifications.map(n => ({ ...n, flag: true }));
-      
-      const sortedNotifications = updatedNotifications.sort((a, b) => 
+
+      const sortedNotifications = updatedNotifications.sort((a, b) =>
         new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
       );
-      
+
       setNotifications(sortedNotifications);
       setUnreadCount(0);
     } catch (error) {
@@ -181,11 +173,11 @@ const AccountPage: React.FC = () => {
 
   const formatDate = (dateInput: string | Date) => {
     const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-    return date.toLocaleDateString('ru-RU', { 
-      day: 'numeric', 
-      month: 'short', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -235,19 +227,19 @@ const AccountPage: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.wrapper}>
         {/* Шапка с уведомлениями */}
-        <header className={styles.header}>``
+        <header className={styles.header}>
           <h2 className={styles.title}>
             Мой аккаунт
           </h2>
-          
+
           <div className={styles.headerControls}>
             <NotificationBell
               userId={user?.id_user}
               maxDisplayed={5}
             />
-            
-            <button 
-              onClick={navigateToProfile}
+
+            <button
+              onClick={() => openProfile(user?.id_user)}
               className={styles.profileButton}
             >
               <div className={styles.userAvatar}>
@@ -255,13 +247,13 @@ const AccountPage: React.FC = () => {
               </div>
               Профиль
             </button>
-            
-            <button 
-              onClick={navigateToMain}
+
+            <button
+              onClick={openHome}
               className={styles.cabinetButton}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="white"/>
+                <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="white" />
               </svg>
               Главная
             </button>
@@ -310,7 +302,7 @@ const AccountPage: React.FC = () => {
             </div>
             <div className={styles.actionButtons}>
               <button
-                onClick={navigateToChangeUser}
+                onClick={() => push(`/pages/changeUser`)}
                 className={styles.changeButton}
               >
                 Изменить данные

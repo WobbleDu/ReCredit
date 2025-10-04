@@ -1,62 +1,25 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouterActions } from '../../../hooks/useRouterActions';
 import styles from './styles.module.css';
 import { NotificationBell } from '@src/app/components/notificationBell';
-
-interface User {
-  id_user: number;
-  firstname: string;
-  lastname: string;
-  birthdate: string;
-  phonenumber: string;
-  inn: string;
-  passportserie: string;
-  passportnumber: string;
-  income: number;
-  country: string;
-  dti: number;
-}
-
-interface Offer {
-  id_offer: number;
-  type: string;
-  creditsum: number;
-  interestrate: number;
-  state: number;
-  datestart: string | null;
-  dateend: string | null;
-  owner_id: number | null;
-  guest_id: number | null;
-  owner_firstname: string | null;
-  owner_lastname: string | null;
-}
+import { Offer, UserData, Notification } from '../../../types';
 
 interface LendOffer extends Offer {
   funded?: number;
 }
 
-interface Notification {
-  id_notifications: number;
-  user_id: number;
-  text: string;
-  flag: boolean;
-  datetime: string;
-}
-
 const ProfilePage: React.FC = () => {
+  const {push, openCabinet, openHome} = useRouterActions();
   const [activeTab, setActiveTab] = useState<'borrow' | 'lend'>('borrow');
-  const [userData, setUserData] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData>();
   const [borrowOffers, setBorrowOffers] = useState<Offer[]>([]);
   const [lendOffers, setLendOffers] = useState<LendOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  const router = useRouter();
+  const [, setNotifications] = useState<Notification[]>([]);
+  const [, setUnreadCount] = useState(0);
 
   const handleOfferClick = (offer: Offer) => {
     const userId = localStorage.getItem('userId');
@@ -69,7 +32,7 @@ const ProfilePage: React.FC = () => {
     if (offer.guest_id && Number(userId) === offer.guest_id) {
       localStorage.setItem('offerId', offer.id_offer.toString());
       localStorage.setItem('userId', userId);
-      router.push(`/pages/payments/${offer.id_offer}`);
+      push(`/pages/payments/${offer.id_offer}`);
     } else {
       alert('Эта сделка уже была заключена другим пользователем');
     }
@@ -81,7 +44,7 @@ const ProfilePage: React.FC = () => {
       alert('Настройки доступны только для неактивных предложений');
       return;
     }
-    else {router.push(`/pages/offer_settings/${offerId}`)}
+    else {push(`/pages/offer_settings/${offerId}`)}
   };
 
   const formatBirthDate = (dateString: string) => {
@@ -121,26 +84,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
-    try {
-      const response = await fetch(`http://localhost:3001/notifications/${notificationId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ flag: isRead }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Не удалось обновить уведомление');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Ошибка при обновлении уведомления:', error);
-      throw error;
-    }
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,7 +107,7 @@ const ProfilePage: React.FC = () => {
         }
         
         const contentLength = offersResponse.headers.get('Content-Length');
-        if (contentLength === '0') { const allOffers = []; return}
+        if (contentLength === '0') {  return}
         const allOffers = await offersResponse.json();
         const numericUserId = parseInt(userId, 10);
 
@@ -231,7 +174,7 @@ const ProfilePage: React.FC = () => {
       <div className={styles.wrapper}>
         {/* Шапка */}
         <header className={styles.header}>
-          <h1 className={styles.title}>Профиль пользователя</h1>
+          <h1 className={styles.title}>Пользователь :</h1>
           <h2 className={styles.userFullName}>
             {userData.lastname} {userData.firstname}
           </h2>
@@ -242,13 +185,13 @@ const ProfilePage: React.FC = () => {
             />
             
             <button 
-              onClick={() => router.push('/pages')}
+              onClick={() => openHome()}
               className={styles.navButton}
             >
               Главная
             </button>
             <button 
-              onClick={() => router.push('/pages/lk')}
+              onClick={() => openCabinet()}
               className={styles.cabinetButton}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -383,7 +326,6 @@ const ProfilePage: React.FC = () => {
     )}
   </div>
 </section>
-
       </div>
     </div>
   );

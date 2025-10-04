@@ -2,49 +2,15 @@
 
 import { NotificationBell } from '../components/notificationBell';
 import { useRouterActions } from '../hooks/useRouterActions';
+import { Offer, UserData, Notification } from '../types';
 
-
-import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import styles from './styles.module.css';
 
-interface UserData {
-  id_user: number;
-  Login: string;
-  firstname: string;
-  LastName: string;
-  BirthDate: string;
-  PhoneNumber: string;
-  INN: string;
-  PassportSerie: number;
-  PassportNumber: number;
-  Income: number;
-  Country: string;
-}
-
-interface Offer {
-  id_offer: number;
-  type: string;
-  creditsum: number;
-  interestrate: number;
-  owner_firstname: string;
-  owner_lastname: string;
-  state?: number;
-}
-
-interface Notification {
-  id_notifications: number;
-  user_id: number;
-  text: string;
-  flag: boolean;
-  datetime: string;
-}
-
 const IndexPage: React.FC = () => {
-  const router = useRouter();
-  const { openProfile, openCabinet, openNotifications } = useRouterActions();
+  const { openProfile, openCabinet, push} = useRouterActions();
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const [userData, setUserData] = useState<UserData>();
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -53,11 +19,6 @@ const IndexPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showAllOffers, setShowAllOffers] = useState(true);
 
-  const handleNotificationClick = (notification: Notification) => {
-    console.log('Уведомление кликнуто:', notification);
-    // Дополнительная логика
-  };
-  const handleShowAllClick = () => {openNotifications()};
 
   // Загрузка данных
   useEffect(() => {
@@ -157,7 +118,7 @@ const IndexPage: React.FC = () => {
 
   const showOffer = (id: number) => {
     localStorage.setItem('offerId', id.toString());
-    router.push(`/pages/conclusion_of_offers`);
+    push(`/pages/conclusion_of_offers`);
   };
 
   return (
@@ -173,8 +134,6 @@ const IndexPage: React.FC = () => {
             <NotificationBell
               userId={userData?.id_user}
               maxDisplayed={5}
-              onNotificationClick={handleNotificationClick}
-              onShowAllClick={handleShowAllClick}
             />
 
             <button
@@ -188,7 +147,7 @@ const IndexPage: React.FC = () => {
             </button>
 
             <button
-              onClick={openCabinet}
+              onClick={()=>openCabinet()}
               className={styles.cabinetButton}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
