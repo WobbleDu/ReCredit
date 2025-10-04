@@ -35,7 +35,6 @@ const AccountPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
 
   // Получаем данные пользователя и уведомления
   useEffect(() => {
@@ -249,7 +248,7 @@ const AccountPage: React.FC = () => {
             </button>
 
             <button
-              onClick={openHome}
+              onClick={()=>openHome()}
               className={styles.cabinetButton}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

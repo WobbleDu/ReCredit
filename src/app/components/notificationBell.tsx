@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNotifications} from '../hooks/useNotifications';
 import { type Notification } from '../types';
 import styles from '../pages/styles.module.css'; // Ваши стили
-
+import { useRouterActions } from '../hooks/useRouterActions';
 
 interface NotificationBellProps {
   userId: number | undefined;
@@ -23,7 +23,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   formatDate = (dateString) => new Date(dateString).toLocaleDateString('ru-RU'),
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  
+  const {openNotifications} = useRouterActions();
   const {
     notifications,
     unreadCount,
@@ -138,7 +138,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
               ))}
               {notifications.length > maxDisplayed && (
                 <div 
-                  onClick={handleShowAllClick}
+                  onClick={()=>openNotifications()}
                   className={styles.showAllNotifications}
                 >
                   Показать все уведомления ({notifications.length})
