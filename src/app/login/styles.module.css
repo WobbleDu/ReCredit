@@ -74,6 +74,11 @@
   background-color: #1a252f;
 }
 
+.loginSubmit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .loginFormInput {
   width: 100%;
   padding: 12px 15px;
@@ -88,6 +93,10 @@
 
 .loginFormInput:focus {
   border-color: #3498db;
+}
+
+.loginFormInputError {
+  border-color: #b91c1c;
 }
 
 .loginFormInputFlag {
@@ -126,4 +135,15 @@
   font-size: 1.75rem;
   font-weight: 600;
   color: #2c3e50;
+}
+
+.fieldError {
+  color: #b91c1c;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
 }

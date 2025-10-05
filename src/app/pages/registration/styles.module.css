@@ -75,6 +75,10 @@
   border-color: #3498db;
 }
 
+.inputError {
+  border-color: #b91c1c;
+}
+
 .select {
   width: 100%;
   padding: 12px 15px;
@@ -91,6 +95,10 @@
 
 .select:focus {
   border-color: #3498db;
+}
+
+.selectError {
+  border-color: #b91c1c;
 }
 
 .submitButton {
@@ -111,8 +119,8 @@
 }
 
 .submitButton:disabled {
-  opacity: 0.7;
-  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .footer {
@@ -139,4 +147,11 @@
 
 .loginButton:hover {
   color: #2980b9;
+}
+
+.fieldError {
+  color: #b91c1c;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
 }

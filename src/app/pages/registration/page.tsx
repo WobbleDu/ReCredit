@@ -1,62 +1,60 @@
 'use client'
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
 import styles from './styles.module.css';
+
+interface RegistrationFormData {
+  login: string;
+  password: string;
+  confirmPassword: string;
+  firstname: string;
+  lastname: string;
+  birthdate: string;
+  phonenumber: string;
+  inn: string;
+  passportserie: string;
+  passportnumber: string;
+  income: string;
+  country: string;
+}
 
 const RegistrationForm: React.FC = () => {
   const router = useRouter();
-  const [formData, setFormData] = useState({
-    login: '',
-    password: '',
-    confirmPassword: '',
-    firstname: '',
-    lastname: '',
-    birthdate: '',
-    phonenumber: '',
-    inn: '',
-    passportserie: '',
-    passportnumber: '',
-    income: '',
-    country: ''
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+    watch,
+    clearErrors
+  } = useForm<RegistrationFormData>({
+    defaultValues: {
+      login: '',
+      password: '',
+      confirmPassword: '',
+      firstname: '',
+      lastname: '',
+      birthdate: '',
+      phonenumber: '',
+      inn: '',
+      passportserie: '',
+      passportnumber: '',
+      income: '',
+      country: ''
+    }
   });
 
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const watchPassword = watch('password');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    // Проверка паролей
-    if (formData.password !== formData.confirmPassword) {
-      setError('Пароли не совпадают');
-      setLoading(false);
-      return;
-    }
-
-    // Проверка всех полей
-    if (!formData.login || !formData.password || !formData.confirmPassword ||
-        !formData.firstname || !formData.lastname || !formData.birthdate ||
-        !formData.phonenumber || !formData.inn || !formData.passportserie ||
-        !formData.passportnumber || !formData.income || !formData.country) {
-      setError('Пожалуйста, заполните все поля');
-      setLoading(false);
-      return;
-    }
-
+  const onSubmit = async (data: RegistrationFormData) => {
+    clearErrors();
+    
     try {
       // Подготовка данных для отправки (убираем confirmPassword)
-      const { confirmPassword, ...userData } = formData;
+      const { confirmPassword, ...userData } = data;
 
       // Отправка данных на сервер
       const response = await fetch('http://localhost:3001/users', {
@@ -66,18 +64,22 @@ const RegistrationForm: React.FC = () => {
         },
         body: JSON.stringify(userData),
       });
-      const data = await response.json();
+      
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        throw new Error(data.message || 'Ошибка регистрации');
+        throw new Error(responseData.message || 'Ошибка регистрации');
       }
+      
       // Если регистрация успешна
       alert("Аккаунт создан!");
-      localStorage.setItem('userId', data.id_user);
+      localStorage.setItem('userId', responseData.id_user);
       router.push('/pages/lk/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка регистрации');
-    } finally {
-      setLoading(false);
+      setError('root', {
+        type: 'manual',
+        message: err instanceof Error ? err.message : 'Ошибка регистрации'
+      });
     }
   };
 
@@ -90,27 +92,36 @@ const RegistrationForm: React.FC = () => {
       <div className={styles.formWrapper}>
         <h2 className={styles.title}>Регистрация</h2>
 
-        {error && (
+        {errors.root && (
           <div className={styles.error}>
-            {error}
+            {errors.root.message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit(onSubmit)} className={styles.form} noValidate>
           {/* Логин и пароль */}
           <div className={styles.formGroup}>
             <label htmlFor="login" className={styles.label}>Логин*</label>
             <input
               type="text"
               id="login"
-              name="login"
-              value={formData.login}
-              onChange={handleChange}
-              required
-              maxLength={50}
-              className={styles.input}
+              className={`${styles.input} ${errors.login ? styles.inputError : ''}`}
               placeholder="Введите логин"
+              {...register('login', {
+                required: 'Поле логин обязательно для заполнения',
+                minLength: {
+                  value: 3,
+                  message: 'Логин должен содержать минимум 3 символа'
+                },
+                maxLength: {
+                  value: 50,
+                  message: 'Логин не должен превышать 50 символов'
+                }
+              })}
             />
+            {errors.login && (
+              <span className={styles.fieldError}>{errors.login.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -118,14 +129,23 @@ const RegistrationForm: React.FC = () => {
             <input
               type="password"
               id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              maxLength={50}
-              className={styles.input}
+              className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
               placeholder="Введите пароль"
+              {...register('password', {
+                required: 'Поле пароль обязательно для заполнения',
+                minLength: {
+                  value: 6,
+                  message: 'Пароль должен содержать минимум 6 символов'
+                },
+                maxLength: {
+                  value: 50,
+                  message: 'Пароль не должен превышать 50 символов'
+                }
+              })}
             />
+            {errors.password && (
+              <span className={styles.fieldError}>{errors.password.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -133,14 +153,17 @@ const RegistrationForm: React.FC = () => {
             <input
               type="password"
               id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              maxLength={50}
-              className={styles.input}
+              className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ''}`}
               placeholder="Повторите пароль"
+              {...register('confirmPassword', {
+                required: 'Подтверждение пароля обязательно',
+                validate: value => 
+                  value === watchPassword || 'Пароли не совпадают'
+              })}
             />
+            {errors.confirmPassword && (
+              <span className={styles.fieldError}>{errors.confirmPassword.message}</span>
+            )}
           </div>
 
           {/* Личные данные */}
@@ -149,14 +172,19 @@ const RegistrationForm: React.FC = () => {
             <input
               type="text"
               id="firstname"
-              name="firstname"
-              value={formData.firstname}
-              onChange={handleChange}
-              required
-              maxLength={50}
-              className={styles.input}
+              className={`${styles.input} ${errors.firstname ? styles.inputError : ''}`}
               placeholder="Введите имя"
+              {...register('firstname', {
+                required: 'Поле имя обязательно для заполнения',
+                maxLength: {
+                  value: 50,
+                  message: 'Имя не должно превышать 50 символов'
+                }
+              })}
             />
+            {errors.firstname && (
+              <span className={styles.fieldError}>{errors.firstname.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -164,14 +192,19 @@ const RegistrationForm: React.FC = () => {
             <input
               type="text"
               id="lastname"
-              name="lastname"
-              value={formData.lastname}
-              onChange={handleChange}
-              required
-              maxLength={50}
-              className={styles.input}
+              className={`${styles.input} ${errors.lastname ? styles.inputError : ''}`}
               placeholder="Введите фамилию"
+              {...register('lastname', {
+                required: 'Поле фамилия обязательно для заполнения',
+                maxLength: {
+                  value: 50,
+                  message: 'Фамилия не должна превышать 50 символов'
+                }
+              })}
             />
+            {errors.lastname && (
+              <span className={styles.fieldError}>{errors.lastname.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -179,12 +212,20 @@ const RegistrationForm: React.FC = () => {
             <input
               type="date"
               id="birthdate"
-              name="birthdate"
-              value={formData.birthdate}
-              onChange={handleChange}
-              required
-              className={styles.input}
+              className={`${styles.input} ${errors.birthdate ? styles.inputError : ''}`}
+              {...register('birthdate', {
+                required: 'Поле дата рождения обязательно для заполнения',
+                validate: value => {
+                  const birthDate = new Date(value);
+                  const today = new Date();
+                  const age = today.getFullYear() - birthDate.getFullYear();
+                  return age >= 18 || 'Вы должны быть старше 18 лет';
+                }
+              })}
             />
+            {errors.birthdate && (
+              <span className={styles.fieldError}>{errors.birthdate.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -192,14 +233,23 @@ const RegistrationForm: React.FC = () => {
             <input
               type="tel"
               id="phonenumber"
-              name="phonenumber"
-              value={formData.phonenumber}
-              onChange={handleChange}
-              required
-              maxLength={50}
-              className={styles.input}
+              className={`${styles.input} ${errors.phonenumber ? styles.inputError : ''}`}
               placeholder="Введите телефон"
+              {...register('phonenumber', {
+                required: 'Поле телефон обязательно для заполнения',
+                pattern: {
+                  value: /^[\+]?[0-9\s\-\(\)]+$/,
+                  message: 'Введите корректный номер телефона'
+                },
+                maxLength: {
+                  value: 50,
+                  message: 'Телефон не должен превышать 50 символов'
+                }
+              })}
             />
+            {errors.phonenumber && (
+              <span className={styles.fieldError}>{errors.phonenumber.message}</span>
+            )}
           </div>
 
           {/* Документы */}
@@ -208,14 +258,23 @@ const RegistrationForm: React.FC = () => {
             <input
               type="text"
               id="inn"
-              name="inn"
-              value={formData.inn}
-              onChange={handleChange}
-              required
-              maxLength={50}
-              className={styles.input}
+              className={`${styles.input} ${errors.inn ? styles.inputError : ''}`}
               placeholder="Введите ИНН"
+              {...register('inn', {
+                required: 'Поле ИНН обязательно для заполнения',
+                pattern: {
+                  value: /^\d+$/,
+                  message: 'ИНН должен содержать только цифры'
+                },
+                maxLength: {
+                  value: 50,
+                  message: 'ИНН не должен превышать 50 символов'
+                }
+              })}
             />
+            {errors.inn && (
+              <span className={styles.fieldError}>{errors.inn.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -223,13 +282,23 @@ const RegistrationForm: React.FC = () => {
             <input
               type="number"
               id="passportserie"
-              name="passportserie"
-              value={formData.passportserie}
-              onChange={handleChange}
-              required
-              className={styles.input}
+              className={`${styles.input} ${errors.passportserie ? styles.inputError : ''}`}
               placeholder="Серия"
+              {...register('passportserie', {
+                required: 'Поле серия паспорта обязательно для заполнения',
+                min: {
+                  value: 1000,
+                  message: 'Серия паспорта должна быть 4-значным числом'
+                },
+                max: {
+                  value: 9999,
+                  message: 'Серия паспорта должна быть 4-значным числом'
+                }
+              })}
             />
+            {errors.passportserie && (
+              <span className={styles.fieldError}>{errors.passportserie.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -237,13 +306,23 @@ const RegistrationForm: React.FC = () => {
             <input
               type="number"
               id="passportnumber"
-              name="passportnumber"
-              value={formData.passportnumber}
-              onChange={handleChange}
-              required
-              className={styles.input}
+              className={`${styles.input} ${errors.passportnumber ? styles.inputError : ''}`}
               placeholder="Номер"
+              {...register('passportnumber', {
+                required: 'Поле номер паспорта обязательно для заполнения',
+                min: {
+                  value: 100000,
+                  message: 'Номер паспорта должен быть 6-значным числом'
+                },
+                max: {
+                  value: 999999,
+                  message: 'Номер паспорта должен быть 6-значным числом'
+                }
+              })}
             />
+            {errors.passportnumber && (
+              <span className={styles.fieldError}>{errors.passportnumber.message}</span>
+            )}
           </div>
 
           {/* Финансы и страна */}
@@ -252,24 +331,31 @@ const RegistrationForm: React.FC = () => {
             <input
               type="number"
               id="income"
-              name="income"
-              value={formData.income}
-              onChange={handleChange}
-              step="0.01"
-              className={styles.input}
+              className={`${styles.input} ${errors.income ? styles.inputError : ''}`}
               placeholder="Введите доход"
+              step="0.01"
+              {...register('income', {
+                min: {
+                  value: 0,
+                  message: 'Доход не может быть отрицательным'
+                }
+              })}
             />
+            {errors.income && (
+              <span className={styles.fieldError}>{errors.income.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
             <label htmlFor="country" className={styles.label}>Страна*</label>
             <select
               id="country"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              required
-              className={styles.select}
+              className={`${styles.select} ${errors.country ? styles.selectError : ''}`}
+              {...register('country', {
+                required: 'Поле страна обязательно для заполнения',
+                validate: value => 
+                  value !== '' || 'Выберите страну'
+              })}
             >
               <option value="">Выберите страну</option>
               <option value="Россия">Россия</option>
@@ -278,15 +364,18 @@ const RegistrationForm: React.FC = () => {
               <option value="Узбекистан">Узбекистан</option>
               <option value="other">Другая</option>
             </select>
+            {errors.country && (
+              <span className={styles.fieldError}>{errors.country.message}</span>
+            )}
           </div>
 
           <div className={styles.formGroupFull}>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className={styles.submitButton}
             >
-              {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+              {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
             </button>
           </div>
         </form>
@@ -298,6 +387,7 @@ const RegistrationForm: React.FC = () => {
           <button
             onClick={handleLoginClick}
             className={styles.loginButton}
+            type="button"
           >
             Войти
           </button>
