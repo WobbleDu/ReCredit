@@ -1,3 +1,4 @@
+const { json } = require('stream/consumers');
 const pool = require('../db.js'); // Импортируем pool
 
 //GET
@@ -7,9 +8,11 @@ const getNotifications = () => {
       if (error) {
         reject(error)
       }
-      if(results.rows){
-      resolve(results.rows);
-      }
+      if (results.rows.length === 0) {
+          resolve(results.rowCount);
+        } else {
+          resolve(results.rows);
+        }
     })
   }) 
 }
@@ -22,7 +25,7 @@ const getNotificationByID = (id) => {
         reject(error);
       }
       if (results.rows.length === 0) {
-          resolve(null);
+          resolve([]);
         } else {
           resolve(results.rows[0]);
         }
@@ -37,7 +40,7 @@ const getNotificationByOwnerID = (id) => {
         reject(error);
       }
       if (results.rows.length === 0) {
-          resolve(null);
+          resolve([]);
         } else {
           resolve(results.rows);
         }
@@ -92,7 +95,7 @@ const updateNotification = (id, flag) => {
         reject(error);
       }
       if (results.rows.length === 0) {
-          resolve(null);
+          resolve([]);
         } else {
           resolve(results.rows[0]);
         }

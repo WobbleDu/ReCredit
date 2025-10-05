@@ -3,32 +3,11 @@
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import styles from './styles.module.css';
-
-interface User {
-  id_user: string;
-  firstname: string;
-  lastname: string;
-  birthdate: string;
-  phonenumber: string;
-  inn: string;
-  passportserie: string;
-  passportnumber: string;
-  income: number;
-  country: string;
-  dti: number;
-}
-
-interface Notification {
-  id_notifications: number;
-  user_id: number;
-  text: string;
-  flag: boolean;
-  datetime: string;
-}
+import { UserData, Notification } from '@src/app/types';
 
 const AccountPage: React.FC = () => {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -52,7 +31,7 @@ const AccountPage: React.FC = () => {
           throw new Error('Ошибка при загрузке данных пользователя');
         }
 
-        const userData: User = await response.json();
+        const userData: UserData = await response.json();
         setUser(userData);
 
         // Загружаем уведомления
