@@ -1,0 +1,129 @@
+.container {
+  background-color: #f9f9f9;
+}
+
+.mainDiv {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  padding: 1rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.divError {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+  border: 1px solid #fecaca;
+}
+
+.formContainer {
+  max-width: 28rem;
+  width: 100%;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+}
+
+.noAccount {
+  font-size: 0.875rem;
+  color: #3498db;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.noAccount:hover {
+  color: #2980b9;
+}
+
+.divForRegisterButton {
+  margin-top: 1.5rem;
+  text-align: center; 
+  padding-top: 1rem;
+  border-top: 1px solid #e1e1e1;
+}
+
+.divForRegisterButtonSpan {
+  font-size: 0.875rem;
+  color: #7f8c8d;
+  padding-right: 10pt;
+}
+
+.loginSubmit {
+  width: 100%;
+  padding: 12px 0;
+  background-color: #2c3e50;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.loginSubmit:hover {
+  background-color: #1a252f;
+}
+
+.loginFormInput {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e1e1e1;
+  border-radius: 8px;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+  font-size: 16px;
+  transition: border-color 0.2s;
+}
+
+.loginFormInput:focus {
+  border-color: #3498db;
+}
+
+.loginFormInputFlag {
+  margin-right: 0.5rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-color: #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.loginFormLabelFlag {
+  font-size: 0.875rem;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+.loginFormLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.divForRememberMe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #2c3e50;
+}

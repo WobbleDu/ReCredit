@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import './style.css';
+import styles from './styles.module.css';
+
 interface LoginFormProps {
   onLoginSuccess?: (user: any) => void;
 }
@@ -52,24 +53,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className='MainDiv'>
-      <div className='FormContainer'>
-        <h2>Вход в систему</h2>
-        {error && (<div className='DivError'>{error}</div>)}
+    <div className={styles.mainDiv}>
+      <div className={styles.formContainer}>
+        <h2 className={styles.title}>Вход в систему</h2>
+        {error && (<div className={styles.divError}>{error}</div>)}
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="email" className='LoginForm-label'>Логин</label>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label htmlFor="email" className={styles.loginFormLabel}>Логин</label>
             <input
               id="login"
               type="text"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
-              className='LoginForm-input'
-              placeholder="Ваш логин" />
+              className={styles.loginFormInput}
+              placeholder="Введите ваш логин" />
           </div>
 
-          <div style={{ marginBottom: '1rem' }}>
-            <label htmlFor="password" className='LoginForm-label'>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label htmlFor="password" className={styles.loginFormLabel}>
               Пароль
             </label>
             <input
@@ -77,19 +78,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className='LoginForm-input'
-              placeholder="••••••••" />
+              className={styles.loginFormInput}
+              placeholder="Введите ваш пароль" />
           </div>
 
-          <div className='DivForRememberMe'>
+          <div className={styles.divForRememberMe}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <input
                 id="remember-me"
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className='LoginForm-input-flag' />
-              <label htmlFor="remember-me" className='LoginForm-label-flag'>
+                className={styles.loginFormInputFlag} />
+              <label htmlFor="remember-me" className={styles.loginFormLabelFlag}>
                 Запомнить меня
               </label>
             </div>
@@ -97,7 +98,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className='LoginSubmit'
+            className={styles.loginSubmit}
             style={{
               opacity: loading ? 0.5 : 1,
               pointerEvents: loading ? 'none' : 'auto'
@@ -106,13 +107,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           </button>
         </form>
 
-        <div className='DivForRegisterButton'>
-          <span className='DivForRegisterButtonSpan'>
+        <div className={styles.divForRegisterButton}>
+          <span className={styles.divForRegisterButtonSpan}>
             Ещё нет аккаунта?
           </span>
           <button
             onClick={handleRegisterClick}
-            className='NoAccount'>
+            className={styles.noAccount}>
             Зарегистрироваться
           </button>
         </div>

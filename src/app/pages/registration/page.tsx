@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { resolve } from 'path';
+import styles from './styles.module.css';
 
 const RegistrationForm: React.FC = () => {
   const router = useRouter();
@@ -80,56 +80,26 @@ const RegistrationForm: React.FC = () => {
       setLoading(false);
     }
   };
+
   const handleLoginClick = () => {
-    router.push('http://localhost:3000/login');
+    router.push('/login');
   };
-  
-    return (
-    <div style={{
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f3f4f6',
-      padding: '20px'
-    }}>
-      <div style={{
-        maxWidth: '600px',
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        padding: '24px',
-        overflowY: 'auto',
-        maxHeight: '90vh'
-      }}>
-        <h2 style={{
-          marginBottom: '24px',
-          textAlign: 'center',
-          fontSize: '24px',
-          fontWeight: '600',
-          color: '#111827'
-        }}>
-          Регистрация
-        </h2>
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.formWrapper}>
+        <h2 className={styles.title}>Регистрация</h2>
 
         {error && (
-          <div style={{
-            backgroundColor: '#fee2e2',
-            color: '#b91c1c',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '16px',
-            fontSize: '14px'
-          }}>
+          <div className={styles.error}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <form onSubmit={handleSubmit} className={styles.form}>
           {/* Логин и пароль */}
-          <div>
-            <label htmlFor="login" style={labelStyle}>Логин*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="login" className={styles.label}>Логин*</label>
             <input
               type="text"
               id="login"
@@ -138,12 +108,13 @@ const RegistrationForm: React.FC = () => {
               onChange={handleChange}
               required
               maxLength={50}
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Введите логин"
             />
           </div>
 
-          <div>
-            <label htmlFor="password" style={labelStyle}>Пароль*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="password" className={styles.label}>Пароль*</label>
             <input
               type="password"
               id="password"
@@ -152,12 +123,13 @@ const RegistrationForm: React.FC = () => {
               onChange={handleChange}
               required
               maxLength={50}
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Введите пароль"
             />
           </div>
 
-          <div>
-            <label htmlFor="confirmPassword" style={labelStyle}>Подтвердите пароль*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="confirmPassword" className={styles.label}>Подтвердите пароль*</label>
             <input
               type="password"
               id="confirmPassword"
@@ -166,13 +138,14 @@ const RegistrationForm: React.FC = () => {
               onChange={handleChange}
               required
               maxLength={50}
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Повторите пароль"
             />
           </div>
 
           {/* Личные данные */}
-          <div>
-            <label htmlFor="firstname" style={labelStyle}>Имя*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="firstname" className={styles.label}>Имя*</label>
             <input
               type="text"
               id="firstname"
@@ -181,12 +154,13 @@ const RegistrationForm: React.FC = () => {
               onChange={handleChange}
               required
               maxLength={50}
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Введите имя"
             />
           </div>
 
-          <div>
-            <label htmlFor="lastname" style={labelStyle}>Фамилия*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="lastname" className={styles.label}>Фамилия*</label>
             <input
               type="text"
               id="lastname"
@@ -195,12 +169,13 @@ const RegistrationForm: React.FC = () => {
               onChange={handleChange}
               required
               maxLength={50}
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Введите фамилию"
             />
           </div>
 
-          <div>
-            <label htmlFor="birthdate" style={labelStyle}>Дата рождения*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="birthdate" className={styles.label}>Дата рождения*</label>
             <input
               type="date"
               id="birthdate"
@@ -208,12 +183,12 @@ const RegistrationForm: React.FC = () => {
               value={formData.birthdate}
               onChange={handleChange}
               required
-              style={inputStyle}
+              className={styles.input}
             />
           </div>
 
-          <div>
-            <label htmlFor="phonenumber" style={labelStyle}>Телефон*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="phonenumber" className={styles.label}>Телефон*</label>
             <input
               type="tel"
               id="phonenumber"
@@ -222,13 +197,14 @@ const RegistrationForm: React.FC = () => {
               onChange={handleChange}
               required
               maxLength={50}
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Введите телефон"
             />
           </div>
 
           {/* Документы */}
-          <div>
-            <label htmlFor="inn" style={labelStyle}>ИНН*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="inn" className={styles.label}>ИНН*</label>
             <input
               type="text"
               id="inn"
@@ -237,12 +213,13 @@ const RegistrationForm: React.FC = () => {
               onChange={handleChange}
               required
               maxLength={50}
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Введите ИНН"
             />
           </div>
 
-          <div>
-            <label htmlFor="passportserie" style={labelStyle}>Серия паспорта*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="passportserie" className={styles.label}>Серия паспорта*</label>
             <input
               type="number"
               id="passportserie"
@@ -250,12 +227,13 @@ const RegistrationForm: React.FC = () => {
               value={formData.passportserie}
               onChange={handleChange}
               required
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Серия"
             />
           </div>
 
-          <div>
-            <label htmlFor="passportnumber" style={labelStyle}>Номер паспорта*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="passportnumber" className={styles.label}>Номер паспорта*</label>
             <input
               type="number"
               id="passportnumber"
@@ -263,13 +241,14 @@ const RegistrationForm: React.FC = () => {
               value={formData.passportnumber}
               onChange={handleChange}
               required
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Номер"
             />
           </div>
 
           {/* Финансы и страна */}
-          <div>
-            <label htmlFor="income" style={labelStyle}>Доход</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="income" className={styles.label}>Доход</label>
             <input
               type="number"
               id="income"
@@ -277,19 +256,20 @@ const RegistrationForm: React.FC = () => {
               value={formData.income}
               onChange={handleChange}
               step="0.01"
-              style={inputStyle}
+              className={styles.input}
+              placeholder="Введите доход"
             />
           </div>
 
-          <div>
-            <label htmlFor="country" style={labelStyle}>Страна*</label>
+          <div className={styles.formGroup}>
+            <label htmlFor="country" className={styles.label}>Страна*</label>
             <select
               id="country"
               name="country"
               value={formData.country}
               onChange={handleChange}
               required
-              style={inputStyle}
+              className={styles.select}
             >
               <option value="">Выберите страну</option>
               <option value="Россия">Россия</option>
@@ -300,67 +280,31 @@ const RegistrationForm: React.FC = () => {
             </select>
           </div>
 
-          <div style={{ gridColumn: 'span 2', marginTop: '16px' }}>
+          <div className={styles.formGroupFull}>
             <button
               type="submit"
               disabled={loading}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#3498db',
-                color: 'white',
-                fontWeight: '500',
-                borderRadius: '6px',
-                border: 'none',
-                cursor: 'pointer',
-                opacity: loading ? 0.7 : 1,
-                pointerEvents: loading ? 'none' : 'auto'
-              }}
+              className={styles.submitButton}
             >
               {loading ? 'Регистрация...' : 'Зарегистрироваться'}
             </button>
           </div>
         </form>
 
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <p style={{ fontSize: '14px', color: '#6b7280' }}>
+        <div className={styles.footer}>
+          <span className={styles.footerText}>
             Уже есть аккаунт?{' '}
-            <button
-              onClick={handleLoginClick}
-              style={{
-                fontSize: '0.875rem',
-                color: '#3498db',
-                fontWeight: '500',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              Войти
-            </button>
-          </p>
+          </span>
+          <button
+            onClick={handleLoginClick}
+            className={styles.loginButton}
+          >
+            Войти
+          </button>
         </div>
       </div>
     </div>
   );
 };
-  
-  // Стили для повторного использования
-  const labelStyle = {
-    display: 'block',
-    marginBottom: '8px',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151'
-  };
-  
-  const inputStyle = {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #d1d5db',
-    borderRadius: '6px',
-    fontSize: '14px',
-    boxSizing: 'border-box' as const
-  };
-  
-  export default RegistrationForm;
+
+export default RegistrationForm;
