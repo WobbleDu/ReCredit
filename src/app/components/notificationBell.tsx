@@ -149,38 +149,36 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
               Нет новых уведомлений
             </div>
           ) : (
-            <>
-              <div className={styles.notificationsList}>
-                {displayedNotifications.map((notification) => (
-                  <div 
-                    key={notification.id_notifications}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`${styles.notificationItem} ${styles.unreadNotification}`}
-                  >
-                    <div className={styles.notificationText}>
-                      {notification.text}
-                    </div>
-                    <div className={styles.notificationDate}>
-                      {formatDate(notification.datetime)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Кнопка "Показать все уведомления" поверх контейнера */}
-              <div className={styles.showAllOverlay}>
+            <div className={styles.notificationsList}>
+              {displayedNotifications.map((notification) => (
                 <div 
-                  onClick={() => {
-                    setShowNotifications(false);
-                    openNotifications();
-                  }}
-                  className={styles.showAllNotifications}
+                  key={notification.id_notifications}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`${styles.notificationItem} ${styles.unreadNotification}`}
                 >
-                  Показать все уведомления ({notifications.length})
+                  <div className={styles.notificationText}>
+                    {notification.text}
+                  </div>
+                  <div className={styles.notificationDate}>
+                    {formatDate(notification.datetime)}
+                  </div>
                 </div>
-              </div>
-            </>
+              ))}
+            </div>
           )}
+          
+          {/* Кнопка "Показать все уведомления" отображается ВСЕГДА */}
+          <div className={styles.showAllOverlay}>
+            <div 
+              onClick={() => {
+                setShowNotifications(false);
+                openNotifications();
+              }}
+              className={styles.showAllNotifications}
+            >
+              Показать все уведомления ({notifications.length})
+            </div>
+          </div>
         </div>
       )}
     </div>
