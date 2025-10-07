@@ -19,6 +19,7 @@
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
+  padding-top: 20px;
   border-bottom: 1px solid #e1e1e1;
 }
 
@@ -202,14 +203,16 @@
 .cabinetButton:hover {
   background-color: #1a252f;
 }
-
+.mainContent{
+  padding-left: 20px;
+  padding-right: 20px;
+}
 /* Search Section */
 .searchSection {
   background-color: white;
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 30px;
-  max-width: 100%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 

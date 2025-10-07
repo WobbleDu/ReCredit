@@ -68,7 +68,7 @@ const CreateOfferPage: React.FC = () => {
       }
 
       // После успешного создания - переход в профиль
-      router.push('/pages/profile');
+      router.push('/pages/profile/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
       setLoading(false);

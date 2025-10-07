@@ -127,7 +127,7 @@ const IndexPage: React.FC = () => {
         {/* Шапка */}
         <header className={styles.header}>
           <h1 className={styles.userName}>
-            {userData?.firstname}
+            Безымянная Система Кредитования (БСК)
           </h1>
 
           <div className={styles.headerControls}>
@@ -159,7 +159,7 @@ const IndexPage: React.FC = () => {
         </header>
 
         {/* Основное содержимое */}
-        <main>
+        <main className={styles.mainContent}>
           {/* Поиск и фильтрация */}
           <section className={styles.searchSection}>
             <h2 className={styles.sectionTitle}>

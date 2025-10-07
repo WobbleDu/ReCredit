@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react'; // добавим useEffect
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import styles from './styles.module.css';
@@ -19,7 +19,9 @@ const LoginForm: React.FC = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-    clearErrors
+    clearErrors,
+    setValue, // добавляем setValue для установки значений
+    watch // добавляем watch для отслеживания значений
   } = useForm<LoginFormData>({
     defaultValues: useMemo(() => ({
       login: '',
@@ -28,14 +30,25 @@ const LoginForm: React.FC = () => {
     }), [])
   });
 
+  // Восстановление данных при загрузке компонента
+  useEffect(() => {
+    // Проверяем, была ли активирована опция "Запомнить меня" ранее
+    const rememberMe = localStorage.getItem('rememberMe') === 'true';
+    const savedLogin = localStorage.getItem('userLogin');
+    
+    if (rememberMe && savedLogin) {
+      setValue('rememberMe', true);
+      setValue('login', savedLogin);
+    }
+  }, [setValue]);
+
   // Мемоизированная функция отправки формы
   const onSubmit = useCallback(async (data: LoginFormData) => {
     clearErrors();
     
     try {
-      // Используем AbortController для возможности прерывания запроса
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // Таймаут 10 секунд
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch('http://localhost:3001/', {
         method: 'POST',
@@ -57,22 +70,18 @@ const LoginForm: React.FC = () => {
         throw new Error(responseData.message || 'Ошибка авторизации');
       }
       
-      // Параллельное выполнение операций с localStorage
-      await Promise.all([
-        // Используем микротаски для неблокирующего сохранения
-        Promise.resolve().then(() => {
-          localStorage.setItem('userId', responseData.user_id);
-        }),
-        Promise.resolve().then(() => {
-          if (data.rememberMe) {
-            localStorage.setItem('rememberMe', 'true');
-            localStorage.setItem('userLogin', data.login);
-          } else {
-            localStorage.removeItem('rememberMe');
-            localStorage.removeItem('userLogin');
-          }
-        })
-      ]);
+      // Сохраняем userId
+      localStorage.setItem('userId', responseData.user_id);
+      
+      // Обрабатываем rememberMe
+      if (data.rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('userLogin', data.login);
+      } else {
+        // Если пользователь снял галочку, очищаем сохраненные данные
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('userLogin');
+      }
       
       router.push('/pages');
     } catch (err) {
@@ -136,7 +145,7 @@ const LoginForm: React.FC = () => {
     <div className={styles.mainDiv}>
       <div className={styles.formContainer}>
         <h2 className={styles.title}>Вход в систему</h2>
-        
+
         {errors.root && (
           <div className={styles.divError}>{errors.root.message}</div>
         )}
@@ -190,6 +199,7 @@ const LoginForm: React.FC = () => {
                 Запомнить меня
               </label>
             </div>
+            
           </div>
 
           <button
