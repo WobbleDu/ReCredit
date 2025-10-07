@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import styles from './styles.module.css';
@@ -29,7 +29,9 @@ const RegistrationForm: React.FC = () => {
     formState: { errors, isSubmitting },
     setError,
     watch,
-    clearErrors
+    clearErrors,
+    setValue,
+    trigger
   } = useForm<RegistrationFormData>({
     defaultValues: {
       login: '',
@@ -47,14 +49,79 @@ const RegistrationForm: React.FC = () => {
     }
   });
 
-  const watchPassword = watch('password');
+  // Мемоизированные функции для масок ввода
+  const formatPassportSerie = useCallback((value: string) => {
+    const numbers = value.replace(/\D/g, '').slice(0, 4);
+    return numbers;
+  }, []);
 
-  const onSubmit = async (data: RegistrationFormData) => {
+  const formatPassportNumber = useCallback((value: string) => {
+    const numbers = value.replace(/\D/g, '').slice(0, 6);
+    return numbers;
+  }, []);
+
+  const formatINN = useCallback((value: string) => {
+    const numbers = value.replace(/\D/g, '').slice(0, 12);
+    return numbers;
+  }, []);
+
+  const formatPhone = useCallback((value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    let cleanNumbers = numbers;
+    if (numbers.startsWith('7') || numbers.startsWith('8')) {
+      cleanNumbers = '7' + numbers.slice(1);
+    }
+    cleanNumbers = cleanNumbers.slice(0, 11);
+    
+    if (cleanNumbers.length === 0) return '+7 ';
+    
+    const match = cleanNumbers.match(/^7?(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/);
+    if (!match) return '+7 ';
+    
+    let formatted = '+7';
+    if (match[1]) formatted += ` (${match[1]}`;
+    if (match[2]) formatted += `) ${match[2]}`;
+    if (match[3]) formatted += `-${match[3]}`;
+    if (match[4]) formatted += `-${match[4]}`;
+    
+    return formatted;
+  }, []);
+
+  // Обработчики изменения полей с масками
+  const handlePassportSerieChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatPassportSerie(e.target.value);
+    setValue('passportserie', formattedValue);
+    trigger('passportserie');
+  }, [setValue, trigger, formatPassportSerie]);
+
+  const handlePassportNumberChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatPassportNumber(e.target.value);
+    setValue('passportnumber', formattedValue);
+    trigger('passportnumber');
+  }, [setValue, trigger, formatPassportNumber]);
+
+  const handleINNChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatINN(e.target.value);
+    setValue('inn', formattedValue);
+    trigger('inn');
+  }, [setValue, trigger, formatINN]);
+
+  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatPhone(e.target.value);
+    setValue('phonenumber', formattedValue);
+    trigger('phonenumber');
+  }, [setValue, trigger, formatPhone]);
+
+  const onSubmit = useCallback(async (data: RegistrationFormData) => {
     clearErrors();
     
     try {
-      // Подготовка данных для отправки (убираем confirmPassword)
+      // Подготовка данных для отправки
       const { confirmPassword, ...userData } = data;
+
+      // Используем AbortController для контроля времени выполнения запроса
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       // Отправка данных на сервер
       const response = await fetch('http://localhost:3001/users', {
@@ -63,7 +130,10 @@ const RegistrationForm: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
       
       const responseData = await response.json();
       
@@ -71,21 +141,37 @@ const RegistrationForm: React.FC = () => {
         throw new Error(responseData.message || 'Ошибка регистрации');
       }
       
+      // Сохранение в localStorage
+      localStorage.setItem('userId', responseData.id_user);
+      
       // Если регистрация успешна
       alert("Аккаунт создан!");
-      localStorage.setItem('userId', responseData.id_user);
       router.push('/pages/lk/');
     } catch (err) {
-      setError('root', {
-        type: 'manual',
-        message: err instanceof Error ? err.message : 'Ошибка регистрации'
-      });
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          setError('root', {
+            type: 'manual',
+            message: 'Превышено время ожидания ответа от сервера'
+          });
+        } else {
+          setError('root', {
+            type: 'manual',
+            message: err.message
+          });
+        }
+      } else {
+        setError('root', {
+          type: 'manual',
+          message: 'Ошибка регистрации'
+        });
+      }
     }
-  };
+  }, [clearErrors, router, setError]);
 
-  const handleLoginClick = () => {
+  const handleLoginClick = useCallback(() => {
     router.push('/login');
-  };
+  }, [router]);
 
   return (
     <div className={styles.container}>
@@ -157,8 +243,7 @@ const RegistrationForm: React.FC = () => {
               placeholder="Повторите пароль"
               {...register('confirmPassword', {
                 required: 'Подтверждение пароля обязательно',
-                validate: value => 
-                  value === watchPassword || 'Пароли не совпадают'
+                validate: value => value === watch('password') || 'Пароли не совпадают'
               })}
             />
             {errors.confirmPassword && (
@@ -234,7 +319,7 @@ const RegistrationForm: React.FC = () => {
               type="tel"
               id="phonenumber"
               className={`${styles.input} ${errors.phonenumber ? styles.inputError : ''}`}
-              placeholder="Введите телефон"
+              placeholder="+7 (999) 999-99-99"
               {...register('phonenumber', {
                 required: 'Поле телефон обязательно для заполнения',
                 pattern: {
@@ -246,6 +331,7 @@ const RegistrationForm: React.FC = () => {
                   message: 'Телефон не должен превышать 50 символов'
                 }
               })}
+              onChange={handlePhoneChange}
             />
             {errors.phonenumber && (
               <span className={styles.fieldError}>{errors.phonenumber.message}</span>
@@ -259,7 +345,7 @@ const RegistrationForm: React.FC = () => {
               type="text"
               id="inn"
               className={`${styles.input} ${errors.inn ? styles.inputError : ''}`}
-              placeholder="Введите ИНН"
+              placeholder="123456789012"
               {...register('inn', {
                 required: 'Поле ИНН обязательно для заполнения',
                 pattern: {
@@ -271,6 +357,8 @@ const RegistrationForm: React.FC = () => {
                   message: 'ИНН не должен превышать 50 символов'
                 }
               })}
+              onChange={handleINNChange}
+              maxLength={12}
             />
             {errors.inn && (
               <span className={styles.fieldError}>{errors.inn.message}</span>
@@ -280,10 +368,10 @@ const RegistrationForm: React.FC = () => {
           <div className={styles.formGroup}>
             <label htmlFor="passportserie" className={styles.label}>Серия паспорта*</label>
             <input
-              type="number"
+              type="text"
               id="passportserie"
               className={`${styles.input} ${errors.passportserie ? styles.inputError : ''}`}
-              placeholder="Серия"
+              placeholder="1234"
               {...register('passportserie', {
                 required: 'Поле серия паспорта обязательно для заполнения',
                 min: {
@@ -295,6 +383,8 @@ const RegistrationForm: React.FC = () => {
                   message: 'Серия паспорта должна быть 4-значным числом'
                 }
               })}
+              onChange={handlePassportSerieChange}
+              maxLength={4}
             />
             {errors.passportserie && (
               <span className={styles.fieldError}>{errors.passportserie.message}</span>
@@ -304,10 +394,10 @@ const RegistrationForm: React.FC = () => {
           <div className={styles.formGroup}>
             <label htmlFor="passportnumber" className={styles.label}>Номер паспорта*</label>
             <input
-              type="number"
+              type="text"
               id="passportnumber"
               className={`${styles.input} ${errors.passportnumber ? styles.inputError : ''}`}
-              placeholder="Номер"
+              placeholder="123456"
               {...register('passportnumber', {
                 required: 'Поле номер паспорта обязательно для заполнения',
                 min: {
@@ -319,6 +409,8 @@ const RegistrationForm: React.FC = () => {
                   message: 'Номер паспорта должен быть 6-значным числом'
                 }
               })}
+              onChange={handlePassportNumberChange}
+              maxLength={6}
             />
             {errors.passportnumber && (
               <span className={styles.fieldError}>{errors.passportnumber.message}</span>
@@ -353,8 +445,7 @@ const RegistrationForm: React.FC = () => {
               className={`${styles.select} ${errors.country ? styles.selectError : ''}`}
               {...register('country', {
                 required: 'Поле страна обязательно для заполнения',
-                validate: value => 
-                  value !== '' || 'Выберите страну'
+                validate: value => value !== '' || 'Выберите страну'
               })}
             >
               <option value="">Выберите страну</option>

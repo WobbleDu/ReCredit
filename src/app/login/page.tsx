@@ -70,6 +70,7 @@ const LoginForm: React.FC = () => {
         throw new Error(responseData.message || 'Ошибка авторизации');
       }
       
+<<<<<<< Updated upstream
       // Сохраняем userId
       localStorage.setItem('userId', responseData.user_id);
       
@@ -82,6 +83,22 @@ const LoginForm: React.FC = () => {
         localStorage.removeItem('rememberMe');
         localStorage.removeItem('userLogin');
       }
+=======
+      // Параллельное выполнение операций с localStorage
+      await Promise.all([
+        // Используем микротаски для неблокирующего сохранения
+        Promise.resolve().then(() => {
+          localStorage.setItem('userId', responseData.user_id);
+        }),
+        Promise.resolve().then(() => {
+          if (data.rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+          } else {
+            localStorage.setItem('rememberMe', 'false');
+          }
+        })
+      ]);
+>>>>>>> Stashed changes
       
       router.push('/pages');
     } catch (err) {
