@@ -28,7 +28,7 @@ export interface Offer {
   state: number;
   datestart: string | null;
   dateend: string | null;
-  owner_id: number | null;
+  owner_id: number | undefined;
   guest_id: number | null;
   owner_firstname: string | null;
   owner_lastname: string | null;

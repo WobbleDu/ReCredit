@@ -249,7 +249,7 @@ const PaymentPage: React.FC = () => {
           </h2>
           
           <div className={styles.headerControls}>
-            <NotificationBell userId={userId}/>
+            <NotificationBell userId={offer.owner_id}/>
             
             <button 
               onClick={navigateToProfile}
