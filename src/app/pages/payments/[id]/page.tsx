@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import styles from './styles.module.css';
-
+import { NotificationBell } from '@src/app/components/notificationBell';
+import { userInfo } from 'os';
+import { UserData, Offer } from '@src/app/types';
 interface PaymentData {
   id_payment: number;
   offer_id: number;
@@ -13,23 +15,6 @@ interface PaymentData {
   remain: number;
 }
 
-interface OfferData {
-  id_offer: number;
-  owner_id: number;
-  guest_id: number | null;
-  creditsum: number;
-  interestrate: number;
-  state: number;
-  type: string;
-}
-
-interface Notification {
-  id_notifications: number;
-  user_id: number;
-  text: string;
-  flag: boolean;
-  datetime: string;
-}
 
 interface PaymentFormData {
   amount: string;
@@ -37,7 +22,7 @@ interface PaymentFormData {
 
 const PaymentPage: React.FC = () => {
   const router = useRouter();
-  const [offer, setOffer] = useState<OfferData | null>(null);
+  const [offer, setOffer] = useState<Offer | null>(null);
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -106,20 +91,6 @@ const PaymentPage: React.FC = () => {
           remain = Number(processedOffer.creditsum) || 0;
         }
         setRemainingAmount(remain);
-
-        // Загружаем уведомления
-        if (currentUserId) {
-          const responseNotifications = await fetch(`http://localhost:3001/user/${currentUserId}/notifications`);
-          if (responseNotifications.ok) {
-            const notificationsData = await responseNotifications.json();
-            const sortedNotifications = notificationsData.sort((a: Notification, b: Notification) => {
-              if (a.flag !== b.flag) return a.flag ? 1 : -1;
-              return new Date(b.datetime).getTime() - new Date(a.datetime).getTime();
-            });
-            setNotifications(sortedNotifications);
-            setUnreadCount(notificationsData.filter((n: Notification) => !n.flag).length);
-          }
-        }
 
       } catch (err) {
         console.error('Ошибка при загрузке данных:', err);
@@ -243,58 +214,9 @@ const PaymentPage: React.FC = () => {
     }
   };
 
-  const markAsRead = async (id: number) => {
-    try {
-      await updateNotificationOnServer(id, true);
-      const updatedNotifications = notifications.map(n => 
-        n.id_notifications === id ? { ...n, flag: true } : n
-      );
-      const sortedNotifications = updatedNotifications.sort((a, b) => {
-        if (a.flag !== b.flag) return a.flag ? 1 : -1;
-        return new Date(b.datetime).getTime() - new Date(a.datetime).getTime();
-      });
-      setNotifications(sortedNotifications);
-      setUnreadCount(prev => prev - 1);
-    } catch (error) {
-      console.error('Ошибка при пометке уведомления как прочитанного:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      const unreadIds = notifications
-        .filter(n => !n.flag)
-        .map(n => n.id_notifications);
-      
-      await Promise.all(unreadIds.map(id => updateNotificationOnServer(id, true)));
-      const updatedNotifications = notifications.map(n => ({ ...n, flag: true }));
-      const sortedNotifications = updatedNotifications.sort((a, b) => 
-        new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
-      );
-      setNotifications(sortedNotifications);
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Ошибка при пометке всех уведомлений как прочитанных:', error);
-    }
-  };
-
-  const formatDate = (dateInput: string | Date) => {
-    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-    return date.toLocaleDateString('ru-RU', { 
-      day: 'numeric', 
-      month: 'short', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
-  const displayedNotifications = notifications.slice(0, 5);
-
   // Функции навигации - ОБНОВЛЕНО
   const navigateToProfile = () => router.push(`/pages/profile/${userId}`);
   const navigateToMain = () => router.push('/pages');
-  const navigateToNotifications = () => router.push('/pages/notifications');
-
   if (loading) {
     return (
       <div className={styles.container}>
@@ -327,67 +249,7 @@ const PaymentPage: React.FC = () => {
           </h2>
           
           <div className={styles.headerControls}>
-            <div className={styles.notificationWrapper}>
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className={`${styles.notificationButton} ${showNotifications ? styles.notificationButtonActive : ''}`}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16Z" fill="#2c3e50"/>
-                </svg>
-                {unreadCount > 0 && (
-                  <span className={styles.notificationBadge}>
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-              
-              {showNotifications && (
-                <div className={styles.notificationDropdown}>
-                  <div className={styles.notificationHeader}>
-                    <h3>Уведомления</h3>
-                    {unreadCount > 0 && (
-                      <button 
-                        onClick={markAllAsRead}
-                        className={styles.markAllReadButton}
-                      >
-                        Прочитать все
-                      </button>
-                    )}
-                  </div>
-                  {displayedNotifications.length === 0 ? (
-                    <div className={styles.noNotifications}>
-                      Нет новых уведомлений
-                    </div>
-                  ) : (
-                    <>
-                      {displayedNotifications.map((notification) => (
-                        <div 
-                          key={notification.id_notifications}
-                          onClick={() => markAsRead(notification.id_notifications)}
-                          className={`${styles.notificationItem} ${notification.flag ? '' : styles.unreadNotification}`}
-                        >
-                          <div className={styles.notificationText}>
-                            {notification.text}
-                          </div>
-                          <div className={styles.notificationDate}>
-                            {formatDate(notification.datetime)}
-                          </div>
-                        </div>
-                      ))}
-                      {notifications.length > 5 && (
-                        <div 
-                          onClick={navigateToNotifications}
-                          className={styles.showAllNotifications}
-                        >
-                          Показать все уведомления ({notifications.length})
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            <NotificationBell userId={userId}/>
             
             <button 
               onClick={navigateToProfile}

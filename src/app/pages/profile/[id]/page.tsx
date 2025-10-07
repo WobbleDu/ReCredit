@@ -187,10 +187,8 @@ const ProfilePage: React.FC = () => {
       <div className={styles.wrapper}>
         {/* Шапка */}
         <header className={styles.header}>
-          <h1 className={styles.title}>Профиль пользователя :</h1>
-          <h1 className={styles.userFullName}>
-            {userData.lastname} {userData.firstname}
-          </h1>
+          <h1 className={styles.title}>Профиль пользователя : {userData.lastname} {userData.firstname}
+          </h1>    
           <div className={styles.headerControls}>
             <NotificationBell
               userId={userData.id_user}
