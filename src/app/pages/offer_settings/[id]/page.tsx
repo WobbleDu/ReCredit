@@ -1,3 +1,4 @@
+// page.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react';
@@ -147,7 +148,9 @@ const OfferSettingsPage = () => {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingContainer}>Загрузка данных...</div>
+        <div className={styles.loadingContainer}>
+          <p>Загрузка данных предложения...</p>
+        </div>
       </div>
     );
   }
@@ -155,13 +158,15 @@ const OfferSettingsPage = () => {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.errorContainer}>{error}</div>
-        <button 
-          onClick={handleBackToProfile}
-          className={styles.backButton}
-        >
-          Вернуться в профиль
-        </button>
+        <div className={styles.errorContainer}>
+          <p>{error}</p>
+          <button 
+            onClick={handleBackToProfile}
+            className={styles.backButton}
+          >
+            Вернуться в профиль
+          </button>
+        </div>
       </div>
     );
   }
@@ -169,81 +174,102 @@ const OfferSettingsPage = () => {
   if (!offer) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingContainer}>Предложение не найдено</div>
+        <div className={styles.loadingContainer}>
+          <p>Предложение не найдено</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
+      <div className={styles.wrapper}>
+        {/* Шапка */}
+        <header className={styles.header}>
           <h1 className={styles.title}>Редактирование предложения</h1>
-          <button 
-            onClick={handleBackToProfile}
-            className={styles.navButton}
-          >
-            Назад к профилю
-          </button>
-        </div>
-      </header>
-
-      <section className={styles.formSection}>
-        <form onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label htmlFor="type">Тип предложения</label>
-            <input
-              id="type"
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="creditsum">Сумма кредита (₽)</label>
-            <input
-              type="number"
-              id="creditsum"
-              name="creditsum"
-              value={formData.creditsum}
-              onChange={handleChange}
-              min="1000"
-              step="1000"
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="interestrate">Процентная ставка (%)</label>
-            <input
-              type="number"
-              id="interestrate"
-              name="interestrate"
-              value={formData.interestrate}
-              onChange={handleChange}
-              min="1"
-              max="100"
-              step="0.1"
-              required
-            />
-          </div>
-
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.saveButton}>
-              Сохранить изменения
-            </button>
+          <div className={styles.headerControls}>
             <button 
-              type="button" 
-              className={styles.deleteButton}
-              onClick={handleDelete}
+              onClick={handleBackToProfile}
+              className={styles.navButton}
             >
-              Удалить предложение
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Назад к профилю
             </button>
           </div>
-        </form>
-      </section>
+        </header>
+
+        {/* Основное содержимое */}
+        <section className={styles.formSection}>
+          <div className={styles.sectionContainer}>
+            <h3 className={styles.sectionTitle}>Основные параметры</h3>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label htmlFor="type" className={styles.formLabel}>
+                  Тип предложения
+                </label>
+                <input
+                  id="type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  className={styles.formInput}
+                  required
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="creditsum" className={styles.formLabel}>
+                  Сумма кредита (₽)
+                </label>
+                <input
+                  type="number"
+                  id="creditsum"
+                  name="creditsum"
+                  value={formData.creditsum}
+                  onChange={handleChange}
+                  className={styles.formInput}
+                  min="1000"
+                  step="1000"
+                  required
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="interestrate" className={styles.formLabel}>
+                  Процентная ставка (%)
+                </label>
+                <input
+                  type="number"
+                  id="interestrate"
+                  name="interestrate"
+                  value={formData.interestrate}
+                  onChange={handleChange}
+                  className={styles.formInput}
+                  min="1"
+                  max="100"
+                  step="0.1"
+                  required
+                />
+              </div>
+
+              <div className={styles.formActions}>
+                <button type="submit" className={styles.saveButton}>
+                  Сохранить изменения
+                </button>
+                <button 
+                  type="button" 
+                  className={styles.deleteButton}
+                  onClick={handleDelete}
+                >
+                  Удалить предложение
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
