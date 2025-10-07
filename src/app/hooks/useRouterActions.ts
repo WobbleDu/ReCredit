@@ -29,16 +29,8 @@ export const useRouterActions = () => {
     router.push('/pages/settings');
   }, [router]);
 
-  const goBack = useCallback(() => {
-    router.back();
-  }, [router]);
-
   const push = useCallback((path: string) => {
     router.push(path);
-  }, [router]);
-
-  const replace = useCallback((path: string) => {
-    router.replace(path);
   }, [router]);
 
   return {
@@ -47,9 +39,7 @@ export const useRouterActions = () => {
     openNotifications,
     openHome,
     openSettings,
-    goBack,
     push,
-    replace,
     goLogin,
   };
 };

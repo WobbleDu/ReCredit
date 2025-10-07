@@ -17,7 +17,7 @@ export const useNotifications = ({ userId, apiBaseUrl = 'http://localhost:3001' 
     if (!userId) {
       setNotifications([]);
       setUnreadCount(0);
-      return;
+      return; 
     }
     
     setLoading(true);
