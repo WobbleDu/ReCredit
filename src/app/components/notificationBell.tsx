@@ -1,8 +1,8 @@
 // components/NotificationBell.tsx
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNotifications} from '../hooks/useNotifications';
 import { type Notification } from '../types';
-import styles from '../pages/styles.module.css'; // Ваши стили
+import styles from '../pages/styles.module.css';
 import { useRouterActions } from '../hooks/useRouterActions';
 
 interface NotificationBellProps {
@@ -16,13 +16,14 @@ interface NotificationBellProps {
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({
   userId,
-  maxDisplayed = 5,
+  maxDisplayed,
   apiBaseUrl,
   onNotificationClick,
   onShowAllClick,
   formatDate = (dateString) => new Date(dateString).toLocaleDateString('ru-RU'),
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const {openNotifications} = useRouterActions();
   const {
     notifications,
@@ -36,7 +37,28 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     apiBaseUrl 
   });
 
-  const displayedNotifications = notifications.slice(0, maxDisplayed);
+  // Фильтруем только непрочитанные уведомления
+  const unreadNotifications = notifications.filter(notification => !notification.flag);
+  
+  // Отображаем все непрочитанные уведомления (без ограничения)
+  const displayedNotifications = unreadNotifications;
+
+  // Закрытие dropdown при клике вне его области
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.flag) {
@@ -46,6 +68,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     if (onNotificationClick) {
       onNotificationClick(notification);
     }
+    setShowNotifications(false);
   };
 
   const handleMarkAllAsRead = async () => {
@@ -57,6 +80,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     if (onShowAllClick) {
       onShowAllClick();
     }
+  };
+
+  const handleBellClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowNotifications(!showNotifications);
   };
 
   // Если userId не определен, показываем неактивную кнопку
@@ -76,9 +104,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   }
 
   return (
-    <div className={styles.notificationWrapper}>
+    <div className={styles.notificationWrapper} ref={dropdownRef}>
       <button 
-        onClick={() => setShowNotifications(!showNotifications)}
+        onClick={handleBellClick}
         className={`${styles.notificationButton} ${showNotifications ? styles.notificationButtonActive : ''}`}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -112,7 +140,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
             </div>
           )}
           
-          {loading && notifications.length === 0 ? (
+          {loading && unreadNotifications.length === 0 ? (
             <div className={styles.noNotifications}>
               Загрузка...
             </div>
@@ -122,28 +150,35 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
             </div>
           ) : (
             <>
-              {displayedNotifications.map((notification) => (
-                <div 
-                  key={notification.id_notifications}
-                  onClick={() => handleNotificationClick(notification)}
-                  className={`${styles.notificationItem} ${notification.flag ? '' : styles.unreadNotification}`}
-                >
-                  <div className={styles.notificationText}>
-                    {notification.text}
+              <div className={styles.notificationsList}>
+                {displayedNotifications.map((notification) => (
+                  <div 
+                    key={notification.id_notifications}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`${styles.notificationItem} ${styles.unreadNotification}`}
+                  >
+                    <div className={styles.notificationText}>
+                      {notification.text}
+                    </div>
+                    <div className={styles.notificationDate}>
+                      {formatDate(notification.datetime)}
+                    </div>
                   </div>
-                  <div className={styles.notificationDate}>
-                    {formatDate(notification.datetime)}
-                  </div>
-                </div>
-              ))}
-              {notifications.length > maxDisplayed && (
+                ))}
+              </div>
+              
+              {/* Кнопка "Показать все уведомления" поверх контейнера */}
+              <div className={styles.showAllOverlay}>
                 <div 
-                  onClick={()=>openNotifications()}
+                  onClick={() => {
+                    setShowNotifications(false);
+                    openNotifications();
+                  }}
                   className={styles.showAllNotifications}
                 >
                   Показать все уведомления ({notifications.length})
                 </div>
-              )}
+              </div>
             </>
           )}
         </div>

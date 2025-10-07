@@ -37,8 +37,8 @@
 
 .notificationWrapper {
   position: relative;
+  display: inline-block;
 }
-
 .notificationButton {
   background: none;
   border: none;
@@ -77,14 +77,49 @@
 .notificationDropdown {
   position: absolute;
   right: 0;
-  top: 50px;
+  top: 100%; /* Измените с 50px на 100% */
   width: 300px;
   background-color: white;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   border-radius: 8px;
-  z-index: 100;
+  z-index: 1000; /* Увеличьте z-index */
   max-height: 400px;
+  overflow: hidden; /* Измените с auto на hidden */
+  display: flex;
+  flex-direction: column;
+}
+
+.showAllOverlay {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to bottom, transparent, white 20%);
+  padding-top: 20px;
+  margin-top: -20px;
+}
+
+.showAllNotifications {
+  padding: 15px;
+  text-align: center;
+  color: #3498db;
+  cursor: pointer;
+  font-weight: bold;
+  border-top: 1px solid #e1e1e1;
+  transition: background-color 0.2s;
+  background-color: white;
+  position: relative;
+  z-index: 101;
+}
+
+.showAllNotifications:hover {
+  background-color: #f8f9fa;
+}
+
+.notificationsList {
+  max-height: 300px;
   overflow-y: auto;
+  flex: 1;
 }
 
 .notificationHeader {
@@ -138,20 +173,6 @@
 .notificationDate {
   font-size: 12px;
   color: #7f8c8d;
-}
-
-.showAllNotifications {
-  padding: 15px;
-  text-align: center;
-  color: #3498db;
-  cursor: pointer;
-  font-weight: bold;
-  border-top: 1px solid #e1e1e1;
-  transition: background-color 0.2s;
-}
-
-.showAllNotifications:hover {
-  background-color: #f8f9fa;
 }
 
 .profileButton {
