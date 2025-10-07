@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import styles from './styles.module.css';
@@ -21,17 +21,22 @@ const LoginForm: React.FC = () => {
     setError,
     clearErrors
   } = useForm<LoginFormData>({
-    defaultValues: {
+    defaultValues: useMemo(() => ({
       login: '',
       password: '',
       rememberMe: false
-    }
+    }), [])
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  // Мемоизированная функция отправки формы
+  const onSubmit = useCallback(async (data: LoginFormData) => {
     clearErrors();
     
     try {
+      // Используем AbortController для возможности прерывания запроса
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // Таймаут 10 секунд
+
       const response = await fetch('http://localhost:3001/', {
         method: 'POST',
         headers: {
@@ -41,7 +46,10 @@ const LoginForm: React.FC = () => {
           login: data.login, 
           password: data.password 
         }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       const responseData = await response.json();
       
@@ -49,28 +57,80 @@ const LoginForm: React.FC = () => {
         throw new Error(responseData.message || 'Ошибка авторизации');
       }
       
-      localStorage.setItem('userId', responseData.user_id);
-      
-      if (data.rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem('userLogin', data.login);
-      } else {
-        localStorage.removeItem('rememberMe');
-        localStorage.removeItem('userLogin');
-      }
+      // Параллельное выполнение операций с localStorage
+      await Promise.all([
+        // Используем микротаски для неблокирующего сохранения
+        Promise.resolve().then(() => {
+          localStorage.setItem('userId', responseData.user_id);
+        }),
+        Promise.resolve().then(() => {
+          if (data.rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('userLogin', data.login);
+          } else {
+            localStorage.removeItem('rememberMe');
+            localStorage.removeItem('userLogin');
+          }
+        })
+      ]);
       
       router.push('/pages');
     } catch (err) {
-      setError('root', {
-        type: 'manual',
-        message: err instanceof Error ? err.message : 'Ошибка авторизации'
-      });
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          setError('root', {
+            type: 'manual',
+            message: 'Превышено время ожидания ответа от сервера'
+          });
+        } else {
+          setError('root', {
+            type: 'manual',
+            message: err.message
+          });
+        }
+      } else {
+        setError('root', {
+          type: 'manual',
+          message: 'Ошибка авторизации'
+        });
+      }
     }
-  };
+  }, [clearErrors, router, setError]);
 
-  const handleRegisterClick = () => {
+  // Мемоизированная функция перехода к регистрации
+  const handleRegisterClick = useCallback(() => {
     router.push('/pages/registration');
-  };
+  }, [router]);
+
+  // Мемоизированные пропсы для регистрации полей формы
+  const loginRegisterProps = useMemo(() => 
+    register('login', {
+      required: 'Поле логин обязательно для заполнения',
+      minLength: {
+        value: 3,
+        message: 'Логин должен содержать минимум 3 символа'
+      },
+      maxLength: {
+        value: 50,
+        message: 'Логин не должен превышать 50 символов'
+      }
+    }), [register]);
+
+  const passwordRegisterProps = useMemo(() => 
+    register('password', {
+      required: 'Поле пароль обязательно для заполнения',
+      minLength: {
+        value: 6,
+        message: 'Пароль должен содержать минимум 6 символов'
+      },
+      maxLength: {
+        value: 50,
+        message: 'Пароль не должен превышать 50 символов'
+      }
+    }), [register]);
+
+  const rememberMeRegisterProps = useMemo(() => 
+    register('rememberMe'), [register]);
 
   return (
     <div className={styles.mainDiv}>
@@ -93,17 +153,7 @@ const LoginForm: React.FC = () => {
                 errors.login ? styles.loginFormInputError : ''
               }`}
               placeholder="Введите ваш логин"
-              {...register('login', {
-                required: 'Поле логин обязательно для заполнения',
-                minLength: {
-                  value: 3,
-                  message: 'Логин должен содержать минимум 3 символа'
-                },
-                maxLength: {
-                  value: 50,
-                  message: 'Логин не должен превышать 50 символов'
-                }
-              })}
+              {...loginRegisterProps}
             />
             {errors.login && (
               <span className={styles.fieldError}>{errors.login.message}</span>
@@ -121,17 +171,7 @@ const LoginForm: React.FC = () => {
                 errors.password ? styles.loginFormInputError : ''
               }`}
               placeholder="Введите ваш пароль"
-              {...register('password', {
-                required: 'Поле пароль обязательно для заполнения',
-                minLength: {
-                  value: 6,
-                  message: 'Пароль должен содержать минимум 6 символов'
-                },
-                maxLength: {
-                  value: 50,
-                  message: 'Пароль не должен превышать 50 символов'
-                }
-              })}
+              {...passwordRegisterProps}
             />
             {errors.password && (
               <span className={styles.fieldError}>{errors.password.message}</span>
@@ -144,7 +184,7 @@ const LoginForm: React.FC = () => {
                 id="remember-me"
                 type="checkbox"
                 className={styles.loginFormInputFlag}
-                {...register('rememberMe')}
+                {...rememberMeRegisterProps}
               />
               <label htmlFor="remember-me" className={styles.loginFormLabelFlag}>
                 Запомнить меня
