@@ -33,6 +33,9 @@ export const useRouterActions = () => {
     router.push(path);
   }, [router]);
 
+  const goBack = useCallback((path: string) => {
+    router.back();
+  }, [router]);
   return {
     openProfile,
     openCabinet,
@@ -41,5 +44,6 @@ export const useRouterActions = () => {
     openSettings,
     push,
     goLogin,
+    goBack,
   };
 };
