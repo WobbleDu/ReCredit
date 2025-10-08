@@ -2,7 +2,22 @@
   background-color: #f9f9f9;
   min-height: 100vh;
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+}
+
+.header {
+  background-color: transparent;
+  margin-bottom: 0;
+}
+
+.headerContent {
+  max-width: 90%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #e1e1e1;
 }
 
 .wrapper {
@@ -11,18 +26,9 @@
   background-color: white;
   border-radius: 10px;
   padding: 30px;
-  margin-top: 20px;
+  margin-top: 0;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e1e1e1;
 }
 
 .title {
@@ -30,12 +36,14 @@
   color: #2c3e50;
   font-size: 28px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .headerControls {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 .notificationWrapper {
@@ -160,6 +168,10 @@
   background-color: #f8f9fa;
 }
 
+.profileDropdown {
+  position: relative;
+}
+
 .profileButton {
   display: flex;
   align-items: center;
@@ -171,12 +183,16 @@
   border: none;
   font-size: 14px;
   font-weight: 500;
+  min-width: 160px;
   transition: background-color 0.2s;
   white-space: nowrap;
+  position: relative;
+  padding-right: 35px;
 }
 
 .profileButton:hover {
   background-color: #dfe6e9;
+  border-color: #95a5a6;
 }
 
 .userAvatar {
@@ -190,6 +206,65 @@
   color: white;
   font-weight: bold;
   flex-shrink: 0;
+  font-size: 12px;
+}
+
+.dropdownArrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s;
+}
+
+.dropdownArrowActive {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.profileDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 160px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdownMenuItem {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #2c3e50;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdownMenuItem:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdownMenuItemDelete {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #e74c3c;
+  transition: background-color 0.2s;
+}
+
+.dropdownMenuItemDelete:hover {
+  background-color: #fee;
 }
 
 .cabinetButton {
@@ -270,48 +345,6 @@
   font-weight: 500;
 }
 
-.actionButtons {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.changeButton {
-  padding: 12px 25px;
-  background-color: #2c3e50;
-  border: 1px solid #2c3e50;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-}
-
-.changeButton:hover {
-  background-color: #1a252f;
-  border-color: #1a252f;
-}
-
-.deleteButton {
-  padding: 12px 25px;
-  background-color: #e74c3c;
-  border: 1px solid #e74c3c;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-}
-
-.deleteButton:hover {
-  background-color: #c0392b;
-  border-color: #c0392b;
-}
-
 .loadingContainer {
   display: flex;
   justify-content: center;
@@ -346,15 +379,16 @@
     padding: 10px;
   }
   
-  .wrapper {
+  .headerContent {
     max-width: 100%;
-    padding: 20px;
-  }
-  
-  .header {
     flex-direction: column;
     gap: 15px;
     align-items: flex-start;
+  }
+  
+  .wrapper {
+    max-width: 100%;
+    padding: 20px;
   }
   
   .headerControls {
@@ -368,13 +402,9 @@
     gap: 20px;
   }
   
-  .actionButtons {
-    flex-direction: column;
-  }
-  
-  .changeButton,
-  .deleteButton {
-    width: 100%;
+  .profileDropdownMenu {
+    right: auto;
+    left: 0;
   }
 }
 
@@ -388,5 +418,13 @@
   .cabinetButton,
   .createOfferButton {
     justify-content: center;
+  }
+  
+  .profileDropdownMenu {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 280px;
   }
 }

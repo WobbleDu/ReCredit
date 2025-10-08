@@ -217,7 +217,7 @@ const ProfilePage: React.FC = () => {
         <section className={styles.profileSection}>
           <div className={styles.profileInfo}>
             <div className={styles.avatarPlaceholder}>
-              {userData.firstname?.charAt(0)}{userData.lastname?.charAt(0)}
+              {userData.firstname?.[0]?.toUpperCase() || 'U'}{userData.lastname?.[0]?.toUpperCase() || ''}
             </div>
             <div className={styles.userDetails}>
               <div className={styles.userDetailItem}>

@@ -1,4 +1,3 @@
-// page.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react';
@@ -41,7 +40,6 @@ const OfferSettingsPage = () => {
         const userIdNumber = Number(userIdFromStorage);
         setUserId(userIdNumber);
 
-        const offerId = localStorage.getItem('offerId');
         const response = await fetch(`http://localhost:3001/offers/${id}`);
         if (!response.ok) {
           throw new Error('Не удалось загрузить предложение');
@@ -49,7 +47,6 @@ const OfferSettingsPage = () => {
 
         const offerData = await response.json();
         
-        // Проверяем, является ли пользователь владельцем предложения
         if (userIdNumber !== offerData.owner_id) {
           throw new Error('Вы не являетесь владельцем этого предложения');
         }
@@ -184,7 +181,7 @@ const OfferSettingsPage = () => {
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        {/* Шапка */}
+        {/* Шапка как в профиле - без белого фона */}
         <header className={styles.header}>
           <h1 className={styles.title}>Редактирование предложения</h1>
           <div className={styles.headerControls}>
@@ -195,7 +192,7 @@ const OfferSettingsPage = () => {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Назад к профилю
+              Назад
             </button>
           </div>
         </header>

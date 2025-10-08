@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import styles from './styles.module.css';
 import { NotificationBell } from '@src/app/components/notificationBell';
-import { userInfo } from 'os';
 import { UserData, Offer } from '@src/app/types';
+
 interface PaymentData {
   id_payment: number;
   offer_id: number;
@@ -14,7 +14,6 @@ interface PaymentData {
   summary: number;
   remain: number;
 }
-
 
 interface PaymentFormData {
   amount: string;
@@ -32,6 +31,8 @@ const PaymentPage: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const {
     register,
@@ -54,6 +55,15 @@ const PaymentPage: React.FC = () => {
         
         if (!offerId) {
           throw new Error('ID предложения не найден в localStorage');
+        }
+
+        // Получаем данные пользователя
+        if (currentUserId) {
+          const userResponse = await fetch(`http://localhost:3001/users/${currentUserId}`);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setUserData(userData);
+          }
         }
 
         // Получаем данные предложения
@@ -197,26 +207,14 @@ const PaymentPage: React.FC = () => {
     }
   };
 
-  // Функции для уведомлений
-  const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
-    try {
-      const response = await fetch(`http://localhost:3001/notifications/${notificationId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flag: isRead }),
-      });
-      
-      if (!response.ok) throw new Error('Не удалось обновить уведомление');
-      return await response.json();
-    } catch (error) {
-      console.error('Ошибка при обновлении уведомления:', error);
-      throw error;
-    }
-  };
-
-  // Функции навигации - ОБНОВЛЕНО
+  // Функции навигации
   const navigateToProfile = () => router.push(`/pages/profile/${userId}`);
   const navigateToMain = () => router.push('/pages');
+  const navigateToChangeUser = () => {
+    setShowProfileMenu(false);
+    router.push(`/pages/changeUser`);
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -241,39 +239,41 @@ const PaymentPage: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.wrapper}>
-        {/* Шапка с уведомлениями */}
-        <header className={styles.header}>
-          <h2 className={styles.title}>
-            Управление платежами
-          </h2>
+      <header className={styles.header}>
+      <div className={styles.headerContent}>
+        <h2 className={styles.title}>
+          Управление платежами
+        </h2>
+        
+        <div className={styles.headerControls}>
+          <NotificationBell userId={offer.owner_id}/>
           
-          <div className={styles.headerControls}>
-            <NotificationBell userId={offer.owner_id}/>
-            
-            <button 
-              onClick={navigateToProfile}
-              className={styles.profileButton}
-            >
-              <div className={styles.userAvatar}>
-                U
-              </div>
-              Профиль
-            </button>
-            
-            <button 
-              onClick={navigateToMain}
-              className={styles.cabinetButton}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="white"/>
-              </svg>
-              Главная
-            </button>
-          </div>
-        </header>
+          <button 
+            onClick={navigateToMain}
+            className={styles.cabinetButton}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z" fill="white"/>
+            </svg>
+            Главная
+          </button>
+          
+          {/* Обычная кнопка профиля */}
+          <button 
+            onClick={navigateToProfile}
+            className={styles.profileButton}
+          >
+            <div className={styles.userAvatar}>
+              {userData?.firstname?.[0]?.toUpperCase() || 'U'}{userData?.lastname?.[0]?.toUpperCase() || ''}
+            </div>
+            Профиль
+          </button>
+        </div>
+      </div>
+    </header>
 
-        {/* Основное содержимое */}
+      {/* Основное содержимое в wrapper с белым фоном */}
+      <div className={styles.wrapper}>
         <div className={styles.contentGrid}>
           {/* Информация о сделке */}
           <div>

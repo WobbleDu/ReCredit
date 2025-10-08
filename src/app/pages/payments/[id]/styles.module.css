@@ -5,24 +5,31 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Стили для header с прозрачным фоном */
+.header {
+  background-color: transparent;
+  margin-bottom: 0;
+}
+
+.headerContent {
+  max-width: 90%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #e1e1e1;
+}
+
 .wrapper {
   max-width: 90%;
   margin: 0 auto;
   background-color: white;
   border-radius: 10px;
   padding: 30px;
-  margin-top: 20px;
+  margin-top: 0;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e1e1e1;
 }
 
 .title {
@@ -30,12 +37,14 @@
   color: #2c3e50;
   font-size: 28px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .headerControls {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 .notificationWrapper {
@@ -189,6 +198,7 @@
   justify-content: center;
   color: white;
   font-weight: bold;
+  font-size: 12px;
   flex-shrink: 0;
 }
 
@@ -278,7 +288,7 @@
 
 .submitButton {
   padding: 12px 25px;
-  background-color: #3498db; /* Синий цвет как на других страницах */
+  background-color: #3498db;
   border: 1px solid #3498db;
   border-radius: 8px;
   color: white;
@@ -291,7 +301,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: #2980b9; /* Темно-синий при наведении */
+  background-color: #2980b9;
   border-color: #2980b9;
 }
 
@@ -407,15 +417,16 @@
     padding: 10px;
   }
   
-  .wrapper {
+  .headerContent {
     max-width: 100%;
-    padding: 20px;
-  }
-  
-  .header {
     flex-direction: column;
     gap: 15px;
     align-items: flex-start;
+  }
+  
+  .wrapper {
+    max-width: 100%;
+    padding: 20px;
   }
   
   .headerControls {

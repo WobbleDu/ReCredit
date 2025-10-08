@@ -2,7 +2,7 @@
 
 import { NotificationBell } from '../components/notificationBell';
 import { useRouterActions } from '../hooks/useRouterActions';
-import { Offer, UserData, Notification } from '../types';
+import { Offer, UserData, Notification } from '@src/app/types';
 
 import React, { useState, useEffect } from 'react';
 import styles from './styles.module.css';
@@ -141,7 +141,7 @@ const IndexPage: React.FC = () => {
               className={styles.profileButton}
             >
               <div className={styles.userAvatar}>
-                U
+                {userData?.firstname?.[0]?.toUpperCase() || 'U'}{userData?.lastname?.[0]?.toUpperCase() || ''}
               </div>
               Профиль
             </button>

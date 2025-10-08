@@ -14,6 +14,7 @@ const AccountPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Получаем данные пользователя и уведомления
   useEffect(() => {
@@ -87,7 +88,10 @@ const AccountPage: React.FC = () => {
   const navigateToMain = () => router.push('/pages');
   const navigateToNotifications = () => router.push('/pages/notifications');
   const navigateToCreateOffers = () => router.push('/pages/create_offers');
-  const navigateToChangeUser = () => router.push(`/pages/changeUser`);
+  const navigateToChangeUser = () => {
+    setShowProfileMenu(false);
+    router.push(`/pages/changeUser`);
+  };
 
   // Функции для уведомлений
   const updateNotificationOnServer = async (notificationId: number, isRead: boolean) => {
@@ -210,9 +214,9 @@ const AccountPage: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.wrapper}>
-        {/* Шапка с уведомлениями */}
-        <header className={styles.header}>
+      {/* Header вынесен из wrapper чтобы не было белого фона */}
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
           <h2 className={styles.title}>
             Мой аккаунт
           </h2>
@@ -240,74 +244,59 @@ const AccountPage: React.FC = () => {
               Добавить объявление
             </button>
             
-            <button 
-              onClick={navigateToProfile}
-              className={styles.profileButton}
-            >
-              <div className={styles.userAvatar}>
-                {user.firstname?.[0]?.toUpperCase() || 'U'}
-              </div>
-              Профиль
-            </button>
+            {/* Выпадающая кнопка профиля */}
+            <div className={styles.profileDropdown}>
+              <button 
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className={styles.profileButton}
+              >
+                <div className={styles.userAvatar}>
+                  {user.firstname?.[0]?.toUpperCase() || 'U'}{user.lastname?.[0]?.toUpperCase() || ''}
+                </div>
+                Профиль
+                <svg 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`${styles.dropdownArrow} ${showProfileMenu ? styles.dropdownArrowActive : ''}`}
+                >
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              
+              {showProfileMenu && (
+                <div className={styles.profileDropdownMenu}>
+                  <button 
+                    onClick={navigateToProfile}
+                    className={styles.dropdownMenuItem}
+                  >
+                    Просмотр профиля
+                  </button>
+                  <button 
+                    onClick={navigateToChangeUser}
+                    className={styles.dropdownMenuItem}
+                  >
+                    Изменить данные
+                  </button>
+                  <button 
+                    onClick={handleDeleteAccount}
+                    className={styles.dropdownMenuItemDelete}
+                  >
+                    Удалить аккаунт
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Основное содержимое */}
+      {/* Основное содержимое в wrapper с белым фоном */}
+      <div className={styles.wrapper}>
         <div className={styles.contentGrid}>
-          <div>
-            <h3 className={styles.sectionTitle}>
-              Личная информация
-            </h3>
-            <div className={styles.sectionContainer}>
-              <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>
-                  Имя
-                </p>
-                <p className={styles.infoValue}>
-                  {user.firstname}
-                </p>
-              </div>
-              <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>
-                  Фамилия
-                </p>
-                <p className={styles.infoValue}>
-                  {user.lastname}
-                </p>
-              </div>
-              <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>
-                  Дата рождения
-                </p>
-                <p className={styles.infoValue}>
-                  {formatBirthDate(user.birthdate)}
-                </p>
-              </div>
-              <div className={styles.infoItem}>
-                <p className={styles.infoLabel}>
-                  Телефон
-                </p>
-                <p className={styles.infoValue}>
-                  {user.phonenumber}
-                </p>
-              </div>
-            </div>
-            <div className={styles.actionButtons}>
-              <button
-                onClick={navigateToChangeUser}
-                className={styles.changeButton}
-              >
-                Изменить данные
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                className={styles.deleteButton}
-              >
-                Удалить аккаунт
-              </button>
-            </div>
-          </div>
-
+          {/* Слева теперь Документы и финансы */}
           <div>
             <h3 className={styles.sectionTitle}>
               Документы и финансы
@@ -355,6 +344,47 @@ const AccountPage: React.FC = () => {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Справа теперь Личная информация */}
+          <div>
+            <h3 className={styles.sectionTitle}>
+              Личная информация
+            </h3>
+            <div className={styles.sectionContainer}>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  Имя
+                </p>
+                <p className={styles.infoValue}>
+                  {user.firstname}
+                </p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  Фамилия
+                </p>
+                <p className={styles.infoValue}>
+                  {user.lastname}
+                </p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  Дата рождения
+                </p>
+                <p className={styles.infoValue}>
+                  {formatBirthDate(user.birthdate)}
+                </p>
+              </div>
+              <div className={styles.infoItem}>
+                <p className={styles.infoLabel}>
+                  Телефон
+                </p>
+                <p className={styles.infoValue}>
+                  {user.phonenumber}
+                </p>
+              </div>
             </div>
           </div>
         </div>
