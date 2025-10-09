@@ -2,34 +2,26 @@
   background-color: #f9f9f9;
   min-height: 100vh;
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* Стили для header с прозрачным фоном */
-.header {
-  background-color: transparent;
-  margin-bottom: 0;
-}
-
-.headerContent {
-  max-width: 90%;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 0;
-  border-bottom: 1px solid #e1e1e1;
+  font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
 }
 
 .wrapper {
   max-width: 90%;
   margin: 0 auto;
-  background-color: white;
   border-radius: 10px;
-  padding: 30px;
+  padding: 20px;
   margin-top: 0;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  padding-top: 20px;
+  border-bottom: 1px solid #e1e1e1;
 }
 
 .title {
@@ -169,6 +161,10 @@
   background-color: #f8f9fa;
 }
 
+.profileDropdown {
+  position: relative;
+}
+
 .profileButton {
   display: flex;
   align-items: center;
@@ -180,12 +176,16 @@
   border: none;
   font-size: 14px;
   font-weight: 500;
+  min-width: 160px;
   transition: background-color 0.2s;
   white-space: nowrap;
+  position: relative;
+  padding-right: 35px;
 }
 
 .profileButton:hover {
   background-color: #dfe6e9;
+  border-color: #95a5a6;
 }
 
 .userAvatar {
@@ -198,8 +198,66 @@
   justify-content: center;
   color: white;
   font-weight: bold;
-  font-size: 12px;
   flex-shrink: 0;
+  font-size: 12px;
+}
+
+.dropdownArrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s;
+}
+
+.dropdownArrowActive {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.profileDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 160px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdownMenuItem {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #2c3e50;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdownMenuItem:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdownMenuItemDelete {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #e74c3c;
+  transition: background-color 0.2s;
+}
+
+.dropdownMenuItemDelete:hover {
+  background-color: #fee;
 }
 
 .cabinetButton {
@@ -208,7 +266,7 @@
   gap: 10px;
   background-color: #2c3e50;
   color: white;
-  padding: 8px 15px;
+  padding: 10px 20px;
   border-radius: 20px;
   cursor: pointer;
   border: none;
@@ -228,7 +286,7 @@
   gap: 10px;
   background-color: #2c3e50;
   color: white;
-  padding: 8px 15px;
+  padding: 10px 20px;
   border-radius: 20px;
   cursor: pointer;
   border: none;
@@ -280,109 +338,6 @@
   font-weight: 500;
 }
 
-.actionButtons {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.submitButton {
-  padding: 12px 25px;
-  background-color: #3498db;
-  border: 1px solid #3498db;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-  width: 100%;
-}
-
-.submitButton:hover:not(:disabled) {
-  background-color: #2980b9;
-  border-color: #2980b9;
-}
-
-.submitButton:disabled {
-  background-color: #9ca3af;
-  border-color: #9ca3af;
-  cursor: not-allowed;
-}
-
-.formGroup {
-  margin-bottom: 20px;
-}
-
-.formInput {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #e1e1e1;
-  border-radius: 8px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-}
-
-.formInput:focus {
-  border-color: #3498db;
-}
-
-.formInput:disabled {
-  background-color: #f8f9fa;
-  cursor: not-allowed;
-}
-
-.errorMessage {
-  color: #e74c3c;
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-.successMessage {
-  color: #27ae60;
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-.paymentHistory {
-  margin-top: 30px;
-}
-
-.tableContainer {
-  overflow-x: auto;
-  border: 1px solid #e1e1e1;
-  border-radius: 8px;
-  margin-top: 15px;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.tableHeader {
-  background-color: #f8f9fa;
-  text-align: left;
-}
-
-.tableCell {
-  padding: 15px;
-  font-size: 14px;
-  color: #2c3e50;
-  border-bottom: 1px solid #e1e1e1;
-}
-
-.tableHeaderCell {
-  padding: 15px;
-  font-size: 14px;
-  color: #7f8c8d;
-  font-weight: 500;
-  border-bottom: 1px solid #e1e1e1;
-}
-
 .loadingContainer {
   display: flex;
   justify-content: center;
@@ -417,16 +372,15 @@
     padding: 10px;
   }
   
-  .headerContent {
-    max-width: 100%;
-    flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
-  }
-  
   .wrapper {
     max-width: 100%;
     padding: 20px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
   }
   
   .headerControls {
@@ -440,12 +394,9 @@
     gap: 20px;
   }
   
-  .actionButtons {
-    flex-direction: column;
-  }
-  
-  .submitButton {
-    width: 100%;
+  .profileDropdownMenu {
+    right: auto;
+    left: 0;
   }
 }
 
@@ -459,5 +410,13 @@
   .cabinetButton,
   .createOfferButton {
     justify-content: center;
+  }
+  
+  .profileDropdownMenu {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 280px;
   }
 }

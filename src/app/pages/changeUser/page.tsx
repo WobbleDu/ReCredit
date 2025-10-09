@@ -149,55 +149,55 @@ const ChangeUserPage: React.FC = () => {
     fetchUserData();
   }, [setValue]);
 
- const onSubmit = async (data: UserData) => {
-  try {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+  const onSubmit = async (data: UserData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
 
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
-      throw new Error('Пользователь не авторизован');
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('Пользователь не авторизован');
+      }
+
+      // Преобразуем данные в snake_case для бэкенда
+      const requestData = {
+        id_user: data.id_user,
+        login: data.login,
+        firstname: data.firstname,
+        lastname: data.lastname,
+        birthdate: new Date(data.birthdate).toISOString().split('T')[0],
+        phonenumber: data.phonenumber.replace(/\D/g, ''),
+        inn: data.inn,
+        passportserie: Number(data.passportserie),
+        passportnumber: Number(data.passportnumber),
+        income: Number(data.income),
+        country: data.country,
+        dti: Number(data.dti)
+      };
+
+      console.log('Отправляемые данные:', requestData);
+
+      const response = await fetch(`http://localhost:3001/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Не удалось обновить данные: ${errorText}`);
+      }
+
+      setSuccess('Данные успешно обновлены!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
+    } finally {
+      setLoading(false);
     }
-
-    // Преобразуем данные в snake_case для бэкенда
-    const requestData = {
-      id_user: data.id_user,
-      login: data.login,
-      firstname: data.firstname,
-      lastname: data.lastname, // преобразуем в snake_case
-      birthdate: new Date(data.birthdate).toISOString().split('T')[0], // преобразуем в snake_case
-      phonenumber: data.phonenumber.replace(/\D/g, ''), // преобразуем в snake_case
-      inn: data.inn,
-      passportserie: Number(data.passportserie), // преобразуем в snake_case
-      passportnumber: Number(data.passportnumber), // преобразуем в snake_case
-      income: Number(data.income),
-      country: data.country,
-      dti: Number(data.dti)
-    };
-
-    console.log('Отправляемые данные:', requestData); // для отладки
-
-    const response = await fetch(`http://localhost:3001/users/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestData),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Не удалось обновить данные: ${errorText}`);
-    }
-
-    setSuccess('Данные успешно обновлены!');
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'Произошла неизвестная ошибка');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (loading && !user) {
     return (
@@ -231,13 +231,15 @@ const ChangeUserPage: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.wrapper}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>
-            Изменение личных данных
-          </h2>
-        </div>
+      {/* Header вынесен из wrapper чтобы был серым */}
+      <header className={styles.header}>
+        <h2 className={styles.title}>
+          Изменение личных данных
+        </h2>
+      </header>
 
+      {/* Основное содержимое формы в белом wrapper */}
+      <div className={styles.wrapper}>
         {success && (
           <div className={styles.successMessage}>
             {success}
@@ -264,7 +266,7 @@ const ChangeUserPage: React.FC = () => {
                   <input
                     type="text"
                     {...register('login', { required: 'Логин обязателен' })}
-                    className={`${styles.input} ${errors.login ? styles.inputError : ''}`}
+                    className={`${styles.disabledInput} ${errors.login ? styles.inputError : ''}`}
                     disabled
                   />
                   {errors.login && (
